@@ -1,0 +1,58 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+*.cover
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Data files (don't include in image)
+*.csv
+*.json
+*.pkl
+data/
+logs/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Frontend
+frontend/
+node_modules/
+
+# Temporary files
+tmp/
+temp/
+*.log
