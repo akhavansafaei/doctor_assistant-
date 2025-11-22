@@ -12,8 +12,10 @@ export interface User {
 }
 
 export interface HealthProfile {
-  id: number;
-  user_id: number;
+  id?: number;
+  user_id?: number;
+  age?: number;
+  gender?: string;
   height_cm?: number;
   weight_kg?: number;
   blood_type?: string;
@@ -30,11 +32,13 @@ export interface HealthProfile {
   alcohol_consumption?: string;
   exercise_frequency?: string;
   diet_type?: string;
-  emergency_contact_name?: string;
-  emergency_contact_phone?: string;
-  emergency_contact_relationship?: string;
-  created_at: string;
-  updated_at: string;
+  emergency_contact?: {
+    name?: string;
+    phone?: string;
+    relationship?: string;
+  };
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface Medication {
@@ -46,7 +50,8 @@ export interface Medication {
 
 export interface Surgery {
   name: string;
-  date: string;
+  year?: string;
+  date?: string;
   notes?: string;
 }
 
@@ -87,10 +92,11 @@ export interface Conversation {
 
 // WebSocket types
 export interface WSMessage {
-  type: 'connection' | 'token' | 'stream_start' | 'stream_end' | 'status' | 'error' | 'context_retrieved';
+  type: 'connection' | 'token' | 'stream_start' | 'stream_end' | 'status' | 'error' | 'context_retrieved' | 'onboarding_question' | 'onboarding_complete' | 'profile_saved';
   content?: string;
   status?: string;
   message?: string;
+  question?: string;
   session_id?: string;
   timestamp?: string;
   metadata?: any;

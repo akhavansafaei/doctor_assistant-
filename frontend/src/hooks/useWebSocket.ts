@@ -1,7 +1,8 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import { WSMessage } from '@/types';
 import { wsService } from '@/services/websocket';
 import { useChatStore } from '@/stores/chatStore';
+import { useAuthStore } from '@/stores/authStore';
 import toast from 'react-hot-toast';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -15,7 +16,9 @@ export function useWebSocket() {
     isConnected,
   } = useChatStore();
 
+  const { loadHealthProfile } = useAuthStore();
   const sessionIdRef = useRef<string | null>(null);
+  const [isOnboarding, setIsOnboarding] = useState(false);
 
   useEffect(() => {
     // Connect to WebSocket
@@ -56,6 +59,38 @@ export function useWebSocket() {
         console.log('Connected:', message.session_id);
         break;
 
+      case 'onboarding_question':
+        // Onboarding flow started - show question as assistant message
+        setIsOnboarding(true);
+        addMessage({
+          id: uuidv4(),
+          role: 'assistant',
+          content: message.question || message.content || '',
+          timestamp: new Date(),
+        });
+        toast('💬 Profile onboarding started', { icon: '👋' });
+        break;
+
+      case 'onboarding_complete':
+        // Onboarding finished
+        setIsOnboarding(false);
+        toast.success('🎉 Health profile completed! Your advice will now be personalized.', {
+          duration: 5000,
+        });
+        // Refresh the health profile
+        if (loadHealthProfile) {
+          loadHealthProfile();
+        }
+        break;
+
+      case 'profile_saved':
+        // Profile has been saved
+        console.log('Profile saved successfully');
+        if (loadHealthProfile) {
+          loadHealthProfile();
+        }
+        break;
+
       case 'stream_start':
         startStreaming();
         if (message.metadata?.emergency) {
@@ -90,7 +125,7 @@ export function useWebSocket() {
         console.log('Sources:', message.sources);
         break;
     }
-  }, [startStreaming, appendToStream, endStreaming]);
+  }, [startStreaming, appendToStream, endStreaming, addMessage, loadHealthProfile]);
 
   const sendMessage = useCallback((content: string, enableAgents = true) => {
     try {
@@ -113,6 +148,7 @@ export function useWebSocket() {
   return {
     sendMessage,
     isConnected,
+    isOnboarding,
     sessionId: sessionIdRef.current,
   };
 }
