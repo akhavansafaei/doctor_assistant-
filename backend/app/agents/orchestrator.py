@@ -14,6 +14,10 @@ class AgentState(TypedDict):
     patient_profile: Dict[str, Any]
     conversation_history: List[Dict[str, str]]
 
+    # Memory context (NEW)
+    long_term_memory: Optional[str]  # Formatted memory from past conversations
+    memory_summary: Optional[Dict[str, Any]]  # Memory statistics
+
     # State management
     current_agent: str
     next_agent: str
@@ -97,7 +101,8 @@ class AgentOrchestrator:
                 "patient_profile": state.get("patient_profile", {})
             },
             context={
-                "conversation_history": state.get("conversation_history", [])
+                "conversation_history": state.get("conversation_history", []),
+                "long_term_memory": state.get("long_term_memory", "")
             }
         )
 
@@ -119,7 +124,8 @@ class AgentOrchestrator:
             },
             context={
                 "conversation_history": state.get("conversation_history", []),
-                "triage_result": state.get("triage_result", {})
+                "triage_result": state.get("triage_result", {}),
+                "long_term_memory": state.get("long_term_memory", "")
             }
         )
 
@@ -147,7 +153,8 @@ class AgentOrchestrator:
             },
             context={
                 "conversation_history": state.get("conversation_history", []),
-                "diagnostic_result": diagnostic_result
+                "diagnostic_result": diagnostic_result,
+                "long_term_memory": state.get("long_term_memory", "")
             }
         )
 

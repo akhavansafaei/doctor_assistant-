@@ -138,6 +138,10 @@ Provide your assessment in a clear, structured format including:
         # Format context
         medical_context = self.format_context(retrieved_docs)
 
+        # Get long-term memory context
+        long_term_memory = context.get("long_term_memory", "") if context else ""
+        memory_context = self.format_memory_context(long_term_memory)
+
         # Build comprehensive prompt
         patient_context = ""
         if patient_profile:
@@ -161,6 +165,7 @@ Provide your assessment in a clear, structured format including:
 
 {message}
 {patient_context}
+{memory_context}
 {medical_context}
 
 Provide your assessment in the following format:

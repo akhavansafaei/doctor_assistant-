@@ -12,6 +12,7 @@ from app.agents.onboarding_agent import OnboardingAgent, ProfileCompletionChecke
 from app.agents.streaming import make_streaming_agent
 from app.safety import SafetyGuardrails, EmergencyDetector, ComplianceManager
 from app.utils.profile_context import format_profile_for_prompt, get_critical_warnings
+from app.memory import MemoryManager
 from app.services import api  # Assuming we can access API service
 
 router = APIRouter()
@@ -245,11 +246,30 @@ async def handle_chat_with_profile(
     profile_context = format_profile_for_prompt(health_profile)
     critical_warnings = get_critical_warnings(health_profile)
 
-    # Add profile context to agent inputs
+    # Get long-term memory (past conversations)
+    # NOTE: In production, initialize MemoryManager with actual db session and user_id
+    # For now, we'll use a placeholder
+    long_term_memory = ""
+    memory_summary = {}
+
+    # TODO: Replace with actual implementation when database session is available:
+    # from app.database import get_db
+    # db = next(get_db())
+    # user_id = get_user_id_from_session(session_id)  # Extract from JWT token
+    # memory_manager = MemoryManager(db=db, user_id=user_id)
+    # long_term_memory = await memory_manager.format_memory_for_prompt(
+    #     current_session_id=session_id,
+    #     include_short_term=False  # Short-term is in conversation_history
+    # )
+    # memory_summary = await memory_manager.get_memory_summary(session_id)
+
+    # Add profile context and memory to agent inputs
     enhanced_context = {
         "conversation_history": messages_db.get(session_id, []),
         "patient_profile_context": profile_context,
-        "critical_warnings": critical_warnings
+        "critical_warnings": critical_warnings,
+        "long_term_memory": long_term_memory,  # NEW: Long-term memory from past chats
+        "memory_summary": memory_summary  # NEW: Memory statistics
     }
 
     if enable_agents:

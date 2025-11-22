@@ -85,6 +85,13 @@ class BaseAgent(ABC):
 
         return "\n".join(context_parts)
 
+    def format_memory_context(self, long_term_memory: Optional[str]) -> str:
+        """Format long-term memory for injection into prompts"""
+        if not long_term_memory or not long_term_memory.strip():
+            return ""
+
+        return f"\n\n=== LONG-TERM MEMORY (Past Conversations) ===\n{long_term_memory}\n=== END OF LONG-TERM MEMORY ===\n"
+
     @abstractmethod
     async def process(
         self,
