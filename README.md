@@ -159,6 +159,28 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 Once running, visit:
 - **Swagger UI**: http://localhost:8000/api/docs
 - **ReDoc**: http://localhost:8000/api/redoc
+- **WebSocket**: `ws://localhost:8000/api/v1/ws/chat` (see [WEBSOCKET_GUIDE.md](./WEBSOCKET_GUIDE.md))
+
+### WebSocket (Real-time Streaming) 🆕
+
+```javascript
+// Connect to WebSocket for token-by-token streaming
+const ws = new WebSocket('ws://localhost:8000/api/v1/ws/chat');
+
+ws.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+    if (data.type === 'token') {
+        console.log(data.content); // Stream tokens in real-time!
+    }
+};
+
+ws.send(JSON.stringify({
+    message: "I have a headache",
+    enable_agents: true
+}));
+```
+
+**See [WEBSOCKET_GUIDE.md](./WEBSOCKET_GUIDE.md) for complete documentation and examples.**
 
 ### Key Endpoints
 

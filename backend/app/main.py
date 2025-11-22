@@ -7,7 +7,7 @@ import time
 from loguru import logger
 
 from app.core.config import settings
-from app.api import chat, auth, profile
+from app.api import chat, auth, profile, websocket
 from app.rag import HybridRetriever
 
 
@@ -109,6 +109,7 @@ async def root():
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["Authentication"])
 app.include_router(profile.router, prefix="/api/v1/profile", tags=["Health Profile"])
 app.include_router(chat.router, prefix="/api/v1/chat", tags=["Chat"])
+app.include_router(websocket.router, prefix="/api/v1", tags=["WebSocket"])
 
 
 if __name__ == "__main__":
