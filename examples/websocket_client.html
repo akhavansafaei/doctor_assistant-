@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Doctor Chatbot - WebSocket Client</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 800px;
+            width: 100%;
+            height: 600px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 20px 20px 0 0;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .header .status {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .status-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+
+        .status-dot.connected {
+            background: #4ade80;
+            box-shadow: 0 0 10px #4ade80;
+        }
+
+        .status-dot.disconnected {
+            background: #ef4444;
+        }
+
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f9fafb;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message.user {
+            align-items: flex-end;
+        }
+
+        .message.assistant {
+            align-items: flex-start;
+        }
+
+        .message-bubble {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            word-wrap: break-word;
+        }
+
+        .message.user .message-bubble {
+            background: #667eea;
+            color: white;
+        }
+
+        .message.assistant .message-bubble {
+            background: white;
+            border: 1px solid #e5e7eb;
+            color: #1f2937;
+        }
+
+        .message-time {
+            font-size: 11px;
+            color: #9ca3af;
+            margin-top: 4px;
+        }
+
+        .status-message {
+            text-align: center;
+            color: #6b7280;
+            font-size: 13px;
+            margin: 10px 0;
+            font-style: italic;
+        }
+
+        .emergency-message {
+            background: #fee2e2;
+            border: 2px solid #ef4444;
+            color: #991b1b;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .input-container {
+            padding: 20px;
+            border-top: 1px solid #e5e7eb;
+            background: white;
+            border-radius: 0 0 20px 20px;
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 10px;
+        }
+
+        #messageInput {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 25px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        #messageInput:focus {
+            border-color: #667eea;
+        }
+
+        #sendButton {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        #sendButton:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        #sendButton:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 12px 16px;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #9ca3af;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+                opacity: 0.7;
+            }
+            30% {
+                transform: translateY(-10px);
+                opacity: 1;
+            }
+        }
+
+        .streaming-cursor {
+            display: inline-block;
+            width: 2px;
+            height: 1em;
+            background: #667eea;
+            animation: blink 1s infinite;
+            margin-left: 2px;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏥 AI Doctor Chatbot</h1>
+            <div class="status">
+                <span class="status-dot disconnected" id="statusDot"></span>
+                <span id="statusText">Disconnected</span>
+            </div>
+        </div>
+
+        <div class="chat-container" id="chatContainer">
+            <div class="status-message">
+                Welcome! I'm your AI health assistant. How can I help you today?
+            </div>
+        </div>
+
+        <div class="input-container">
+            <div class="input-wrapper">
+                <input
+                    type="text"
+                    id="messageInput"
+                    placeholder="Describe your symptoms or health concerns..."
+                    disabled
+                >
+                <button id="sendButton" disabled>Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let ws = null;
+        let currentMessageElement = null;
+        let currentStreamingText = '';
+        let isStreaming = false;
+
+        const chatContainer = document.getElementById('chatContainer');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+        const statusDot = document.getElementById('statusDot');
+        const statusText = document.getElementById('statusText');
+
+        // Connect to WebSocket
+        function connect() {
+            const wsUrl = 'ws://localhost:8000/api/v1/ws/chat';
+            ws = new WebSocket(wsUrl);
+
+            ws.onopen = () => {
+                console.log('WebSocket connected');
+                updateStatus('connected');
+                messageInput.disabled = false;
+                sendButton.disabled = false;
+            };
+
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                handleMessage(data);
+            };
+
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+                addStatusMessage('Connection error occurred');
+            };
+
+            ws.onclose = () => {
+                console.log('WebSocket disconnected');
+                updateStatus('disconnected');
+                messageInput.disabled = true;
+                sendButton.disabled = true;
+                addStatusMessage('Disconnected from server. Refresh to reconnect.');
+            };
+        }
+
+        function updateStatus(status) {
+            if (status === 'connected') {
+                statusDot.className = 'status-dot connected';
+                statusText.textContent = 'Connected';
+            } else {
+                statusDot.className = 'status-dot disconnected';
+                statusText.textContent = 'Disconnected';
+            }
+        }
+
+        function handleMessage(data) {
+            console.log('Received:', data);
+
+            switch (data.type) {
+                case 'connection':
+                    addStatusMessage(`Connected! Session ID: ${data.session_id}`);
+                    break;
+
+                case 'stream_start':
+                    isStreaming = true;
+                    currentStreamingText = '';
+                    currentMessageElement = addMessage('', 'assistant', true);
+                    if (data.metadata?.emergency) {
+                        currentMessageElement.classList.add('emergency');
+                    }
+                    break;
+
+                case 'token':
+                    if (currentMessageElement) {
+                        currentStreamingText += data.content;
+                        updateStreamingMessage(currentMessageElement, currentStreamingText);
+                    }
+                    break;
+
+                case 'stream_end':
+                    isStreaming = false;
+                    if (currentMessageElement) {
+                        finalizeMessage(currentMessageElement);
+                        currentMessageElement = null;
+                    }
+                    removeTypingIndicator();
+                    break;
+
+                case 'status':
+                    addStatusMessage(formatStatus(data.status, data.details));
+                    if (data.status === 'generating_response' || data.status === 'processing') {
+                        addTypingIndicator();
+                    }
+                    break;
+
+                case 'error':
+                    addErrorMessage(data.message);
+                    isStreaming = false;
+                    removeTypingIndicator();
+                    break;
+
+                case 'context_retrieved':
+                    console.log('Context retrieved:', data.sources);
+                    break;
+            }
+
+            scrollToBottom();
+        }
+
+        function formatStatus(status, details) {
+            const statusMessages = {
+                'validating': '🔍 Validating input...',
+                'checking_emergency': '🚨 Checking for emergencies...',
+                'processing': '⚙️ Processing your request...',
+                'retrieving_context': '📚 Retrieving medical knowledge...',
+                'generating_response': '💬 Generating response...',
+                'running_triage': '🏥 Running initial assessment...',
+                'running_diagnostic': '🔬 Analyzing symptoms...',
+                'running_treatment': '💊 Preparing recommendations...'
+            };
+
+            return statusMessages[status] || status;
+        }
+
+        function addMessage(content, role, streaming = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${role}`;
+
+            const bubble = document.createElement('div');
+            bubble.className = 'message-bubble';
+            bubble.innerHTML = content;
+
+            if (streaming) {
+                const cursor = document.createElement('span');
+                cursor.className = 'streaming-cursor';
+                bubble.appendChild(cursor);
+            }
+
+            const time = document.createElement('div');
+            time.className = 'message-time';
+            time.textContent = new Date().toLocaleTimeString();
+
+            messageDiv.appendChild(bubble);
+            messageDiv.appendChild(time);
+            chatContainer.appendChild(messageDiv);
+
+            return messageDiv;
+        }
+
+        function updateStreamingMessage(messageElement, text) {
+            const bubble = messageElement.querySelector('.message-bubble');
+            bubble.innerHTML = text;
+
+            // Re-add cursor
+            const cursor = document.createElement('span');
+            cursor.className = 'streaming-cursor';
+            bubble.appendChild(cursor);
+        }
+
+        function finalizeMessage(messageElement) {
+            const bubble = messageElement.querySelector('.message-bubble');
+            const cursor = bubble.querySelector('.streaming-cursor');
+            if (cursor) {
+                cursor.remove();
+            }
+        }
+
+        function addStatusMessage(message) {
+            const statusDiv = document.createElement('div');
+            statusDiv.className = 'status-message';
+            statusDiv.textContent = message;
+            chatContainer.appendChild(statusDiv);
+        }
+
+        function addErrorMessage(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'emergency-message';
+            errorDiv.textContent = `⚠️ Error: ${message}`;
+            chatContainer.appendChild(errorDiv);
+        }
+
+        function addTypingIndicator() {
+            removeTypingIndicator(); // Remove existing if any
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message assistant';
+            messageDiv.id = 'typingIndicator';
+
+            const bubble = document.createElement('div');
+            bubble.className = 'message-bubble typing-indicator';
+
+            for (let i = 0; i < 3; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'typing-dot';
+                bubble.appendChild(dot);
+            }
+
+            messageDiv.appendChild(bubble);
+            chatContainer.appendChild(messageDiv);
+        }
+
+        function removeTypingIndicator() {
+            const indicator = document.getElementById('typingIndicator');
+            if (indicator) {
+                indicator.remove();
+            }
+        }
+
+        function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message || !ws || ws.readyState !== WebSocket.OPEN) return;
+
+            // Add user message to chat
+            addMessage(message, 'user');
+
+            // Send to server
+            ws.send(JSON.stringify({
+                message: message,
+                enable_agents: true
+            }));
+
+            // Clear input
+            messageInput.value = '';
+            scrollToBottom();
+        }
+
+        function scrollToBottom() {
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        // Event listeners
+        sendButton.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Connect on load
+        connect();
+    </script>
+</body>
+</html>
