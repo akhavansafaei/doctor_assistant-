@@ -45,58 +45,55 @@ class TokenResponse(BaseModel):
     token_type: str = "bearer"
 
 
-class HealthProfileBase(BaseModel):
-    """Base health profile schema"""
-    height_cm: Optional[float] = Field(None, gt=0, lt=300)
-    weight_kg: Optional[float] = Field(None, gt=0, lt=500)
-    blood_type: Optional[str] = None
+class ClientProfileBase(BaseModel):
+    """Base client profile schema"""
+    occupation: Optional[str] = None
+    employer: Optional[str] = None
+    citizenship: Optional[str] = None
+    marital_status: Optional[str] = None
 
 
-class HealthProfileCreate(HealthProfileBase):
-    """Health profile creation"""
-    chronic_conditions: Optional[List[str]] = []
-    allergies: Optional[Dict[str, List[str]]] = {
-        "drug": [],
-        "food": [],
-        "environmental": []
-    }
-    current_medications: Optional[List[Dict[str, Any]]] = []
-    past_surgeries: Optional[List[Dict[str, Any]]] = []
-    family_history: Optional[Dict[str, List[str]]] = {}
+class ClientProfileCreate(ClientProfileBase):
+    """Client profile creation"""
+    legal_areas_of_interest: Optional[List[str]] = []
+    active_legal_matters: Optional[List[Dict[str, Any]]] = []
+    previous_legal_issues: Optional[List[Dict[str, Any]]] = []
+    legal_restrictions: Optional[List[Dict[str, Any]]] = []
 
-    smoking_status: Optional[str] = None
-    alcohol_consumption: Optional[str] = None
-    exercise_frequency: Optional[str] = None
-    diet_type: Optional[str] = None
+    business_entities: Optional[List[Dict[str, Any]]] = []
+    financial_concerns: Optional[List[str]] = []
+
+    preferred_communication: Optional[str] = None
+    availability: Optional[Dict[str, Any]] = None
 
     emergency_contact_name: Optional[str] = None
     emergency_contact_phone: Optional[str] = None
     emergency_contact_relationship: Optional[str] = None
 
 
-class HealthProfileUpdate(HealthProfileBase):
-    """Health profile update (partial)"""
-    chronic_conditions: Optional[List[str]] = None
-    allergies: Optional[Dict[str, List[str]]] = None
-    current_medications: Optional[List[Dict[str, Any]]] = None
-    past_surgeries: Optional[List[Dict[str, Any]]] = None
-    family_history: Optional[Dict[str, List[str]]] = None
+class ClientProfileUpdate(ClientProfileBase):
+    """Client profile update (partial)"""
+    legal_areas_of_interest: Optional[List[str]] = None
+    active_legal_matters: Optional[List[Dict[str, Any]]] = None
+    previous_legal_issues: Optional[List[Dict[str, Any]]] = None
+    legal_restrictions: Optional[List[Dict[str, Any]]] = None
+    business_entities: Optional[List[Dict[str, Any]]] = None
+    financial_concerns: Optional[List[str]] = None
 
 
-class HealthProfileResponse(HealthProfileBase):
-    """Health profile response"""
+class ClientProfileResponse(ClientProfileBase):
+    """Client profile response"""
     id: int
     user_id: int
-    chronic_conditions: Optional[List[str]] = None
-    allergies: Optional[Dict[str, List[str]]] = None
-    current_medications: Optional[List[Dict[str, Any]]] = None
-    past_surgeries: Optional[List[Dict[str, Any]]] = None
-    family_history: Optional[Dict[str, List[str]]] = None
+    legal_areas_of_interest: Optional[List[str]] = None
+    active_legal_matters: Optional[List[Dict[str, Any]]] = None
+    previous_legal_issues: Optional[List[Dict[str, Any]]] = None
+    legal_restrictions: Optional[List[Dict[str, Any]]] = None
+    business_entities: Optional[List[Dict[str, Any]]] = None
+    financial_concerns: Optional[List[str]] = None
 
-    smoking_status: Optional[str] = None
-    alcohol_consumption: Optional[str] = None
-    exercise_frequency: Optional[str] = None
-    diet_type: Optional[str] = None
+    preferred_communication: Optional[str] = None
+    availability: Optional[Dict[str, Any]] = None
 
     created_at: datetime
     updated_at: datetime
@@ -105,29 +102,35 @@ class HealthProfileResponse(HealthProfileBase):
         from_attributes = True
 
 
-class MedicalHistoryCreate(BaseModel):
-    """Medical history record creation"""
-    record_type: str = Field(..., regex="^(diagnosis|treatment|lab_result|prescription)$")
+class CaseHistoryCreate(BaseModel):
+    """Legal case history record creation"""
+    record_type: str = Field(..., regex="^(case|consultation|document_review|court_appearance)$")
     record_date: datetime
-    diagnosis_code: Optional[str] = None
-    diagnosis_name: Optional[str] = None
-    prescribed_by: Optional[str] = None
-    prescription_details: Optional[Dict[str, Any]] = None
-    lab_results: Optional[Dict[str, Any]] = None
+    case_number: Optional[str] = None
+    case_type: Optional[str] = None
+    jurisdiction: Optional[str] = None
+    legal_issue: Optional[str] = None
+    case_status: Optional[str] = None
+    handled_by: Optional[str] = None
+    law_firm: Optional[str] = None
+    outcome: Optional[str] = None
     notes: Optional[str] = None
     documents: Optional[List[str]] = None
 
 
-class MedicalHistoryResponse(BaseModel):
-    """Medical history response"""
+class CaseHistoryResponse(BaseModel):
+    """Legal case history response"""
     id: int
     record_type: str
     record_date: datetime
-    diagnosis_code: Optional[str] = None
-    diagnosis_name: Optional[str] = None
-    prescribed_by: Optional[str] = None
-    prescription_details: Optional[Dict[str, Any]] = None
-    lab_results: Optional[Dict[str, Any]] = None
+    case_number: Optional[str] = None
+    case_type: Optional[str] = None
+    jurisdiction: Optional[str] = None
+    legal_issue: Optional[str] = None
+    case_status: Optional[str] = None
+    handled_by: Optional[str] = None
+    law_firm: Optional[str] = None
+    outcome: Optional[str] = None
     notes: Optional[str] = None
     created_at: datetime
 

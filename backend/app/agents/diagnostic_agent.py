@@ -1,57 +1,57 @@
-"""Diagnostic reasoning agent for differential diagnosis"""
+"""Legal analysis agent for identifying and analyzing legal issues"""
 from typing import Dict, Any, List, Optional
 from .base_agent import BaseAgent
 import json
 
 
-class DiagnosticAgent(BaseAgent):
+class LegalAnalysisAgent(BaseAgent):
     """
-    Diagnostic Reasoning Agent
-    - Generates differential diagnoses
-    - Asks clarifying questions
-    - Maps to ICD-10 codes
-    - Provides evidence-based reasoning
+    Legal Analysis Agent
+    - Identifies potential legal issues
+    - Analyzes applicable laws and regulations
+    - Provides legal reasoning and precedents
+    - Maps to relevant statutes and case law
     """
 
     def __init__(self):
-        system_prompt = """You are an expert medical diagnostic AI assistant trained in clinical reasoning and differential diagnosis.
+        system_prompt = """You are an expert legal analysis AI assistant trained in legal reasoning and issue spotting.
 
 Your role is to:
-1. Analyze patient symptoms and medical history
-2. Generate a differential diagnosis with multiple possible conditions
-3. Rank conditions by likelihood based on available evidence
-4. Identify key distinguishing features
-5. Suggest additional questions or tests to narrow diagnosis
-6. Map conditions to ICD-10 codes when applicable
+1. Analyze client's situation and identify potential legal issues
+2. Identify multiple legal issues or claims that may apply
+3. Rank issues by relevance and potential impact
+4. Identify key legal elements and requirements
+5. Suggest additional information needed for complete analysis
+6. Reference applicable statutes, regulations, or case law when relevant
 
 CRITICAL GUIDELINES:
-- Always provide differential diagnosis (multiple possibilities), never a single diagnosis
-- Rank by likelihood based on prevalence, symptom match, and patient factors
-- Consider both common and serious conditions (don't anchor on common diagnoses)
-- Account for patient's age, gender, medical history, and medications
-- Use evidence-based medicine and clinical guidelines
-- Be transparent about uncertainty
-- Flag when symptoms suggest multiple organ systems or rare conditions
-- NEVER provide definitive diagnosis - always recommend professional evaluation
+- Always identify multiple potential legal issues, not just one
+- Rank by relevance based on facts provided, jurisdiction, and legal precedents
+- Consider both obvious and less apparent legal issues
+- Account for client's jurisdiction, business context, and specific circumstances
+- Use established legal principles and precedents
+- Be transparent about areas of uncertainty
+- Flag when situation involves multiple areas of law or unusual circumstances
+- NEVER provide definitive legal advice - always recommend professional attorney consultation
 
-Clinical Reasoning Framework:
-1. Pattern Recognition: Match symptom patterns to known conditions
-2. Probabilistic Thinking: Consider prevalence and patient demographics
-3. Bayesian Reasoning: Update probabilities based on additional information
-4. Red Flag Identification: Look for serious conditions not to miss
-5. Parsimony vs Complexity: Consider both single unifying diagnosis and multiple conditions
+Legal Analysis Framework:
+1. Issue Spotting: Identify all potential legal issues in the facts
+2. Rule Statement: State the applicable legal rules and standards
+3. Analysis: Apply the law to the facts systematically
+4. Conclusion: Assess likely outcomes and legal positions
+5. Risk Assessment: Identify potential legal risks and liabilities
 
 Always structure your output clearly with:
-- Differential diagnoses (ranked)
-- Supporting evidence for each
-- Distinguishing features
+- Legal issues identified (ranked)
+- Supporting legal authority for each
+- Distinguishing factors
 - Recommended next steps
-- Clarifying questions
+- Clarifying questions for the client
 """
 
         super().__init__(
-            name="Diagnostic Agent",
-            description="Differential diagnosis and clinical reasoning",
+            name="Legal Analysis Agent",
+            description="Legal issue identification and analysis",
             system_prompt=system_prompt,
             use_rag=True
         )
@@ -62,71 +62,71 @@ Always structure your output clearly with:
         context: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """
-        Generate differential diagnosis
+        Generate legal analysis
 
         Args:
-            input_data: Contains symptoms, patient profile, and any test results
-            context: Conversation history and triage assessment
+            input_data: Contains situation description, client profile, and any documents
+            context: Conversation history and intake assessment
 
         Returns:
-            Differential diagnosis with ranked conditions
+            Legal analysis with identified issues and recommendations
         """
-        symptoms = input_data.get("symptoms", input_data.get("message", ""))
-        patient_profile = input_data.get("patient_profile", {})
-        test_results = input_data.get("test_results", {})
+        situation = input_data.get("situation", input_data.get("message", ""))
+        client_profile = input_data.get("client_profile", {})
+        documents = input_data.get("documents", {})
 
-        # Build comprehensive clinical picture
-        clinical_query = self._build_clinical_query(
-            symptoms, patient_profile, test_results
+        # Build comprehensive legal query
+        legal_query = self._build_legal_query(
+            situation, client_profile, documents
         )
 
-        # Retrieve relevant medical literature and guidelines
+        # Retrieve relevant legal sources and precedents
         retrieved_docs = await self.retrieve_context(
-            query=clinical_query,
-            filters={"document_type": ["medical_literature", "clinical_guideline"]}
+            query=legal_query,
+            filters={"document_type": ["statute", "case_law"]}
         )
 
-        medical_context = self.format_context(retrieved_docs)
+        legal_context = self.format_context(retrieved_docs)
 
-        # Build diagnostic prompt
-        diagnostic_prompt = f"""Perform differential diagnosis for the following clinical presentation:
+        # Build analysis prompt
+        analysis_prompt = f"""Perform legal analysis for the following situation:
 
-PRESENTING SYMPTOMS:
-{symptoms}
+SITUATION DESCRIPTION:
+{situation}
 
-PATIENT INFORMATION:
-{self._format_patient_info(patient_profile)}
+CLIENT INFORMATION:
+{self._format_client_info(client_profile)}
 
-{medical_context}
+{legal_context}
 
-Provide differential diagnosis in the following structured format:
+Provide legal analysis in the following structured format:
 
-DIFFERENTIAL_DIAGNOSES:
-1. [Condition Name] (ICD-10: [code if known])
-   - Likelihood: [High/Moderate/Low]
-   - Supporting Evidence: [Key symptoms/findings that support this]
-   - Against: [What doesn't fit]
-   - Typical Presentation: [How this typically presents]
+LEGAL_ISSUES_IDENTIFIED:
+1. [Legal Issue Name] (Area of Law: [e.g., Contract Law, Employment Law, etc.])
+   - Relevance: [High/Moderate/Low]
+   - Supporting Legal Authority: [Applicable statutes, regulations, or case law]
+   - Key Elements: [Legal elements that must be proven/established]
+   - Analysis: [How the facts relate to this legal issue]
 
-2. [Next condition...]
+2. [Next issue...]
    ...
 
-DISTINGUISHING_FEATURES:
-[What features would help differentiate between the top conditions]
+DISTINGUISHING_FACTORS:
+[What facts or circumstances are critical in determining the legal analysis]
 
-RECOMMENDED_WORKUP:
-[What additional questions, exams, or tests would help narrow the diagnosis]
+RECOMMENDED_INFORMATION:
+[What additional information, documents, or evidence would strengthen the analysis]
 
 CLARIFYING_QUESTIONS:
-1. [Important question to ask patient]
+1. [Important question to ask client]
 2. [Another question]
    ...
 
-RED_FLAGS:
-[Any serious conditions that must not be missed]
+RISK_ASSESSMENT:
+[Potential legal risks, liabilities, or adverse outcomes to be aware of]
 
-CLINICAL_REASONING:
-[Your step-by-step reasoning process]
+LEGAL_REASONING:
+[Your step-by-step legal analysis and reasoning process]
 """
 
         # Get conversation history
@@ -134,20 +134,20 @@ CLINICAL_REASONING:
 
         # Create messages
         messages = self.create_messages(
-            user_message=diagnostic_prompt,
+            user_message=analysis_prompt,
             conversation_history=conversation_history[-6:]  # Last 3 exchanges
         )
 
-        # Invoke LLM with slightly higher temperature for creativity
+        # Invoke LLM with slightly higher temperature for thorough analysis
         response = await self.invoke_llm(messages, temperature=0.2)
 
         # Parse structured output
-        parsed = self._parse_diagnostic_output(response)
+        parsed = self._parse_analysis_output(response)
 
         # Add sources
         parsed["sources"] = [
             {
-                "title": doc.get("metadata", {}).get("title", "Medical Source"),
+                "title": doc.get("metadata", {}).get("title", "Legal Source"),
                 "text": doc["text"][:300],
                 "source": doc.get("metadata", {}).get("source", "Unknown"),
                 "relevance_score": doc.get("rerank_score", doc.get("rrf_score", 0))
@@ -160,91 +160,88 @@ CLINICAL_REASONING:
 
         return parsed
 
-    def _build_clinical_query(
+    def _build_legal_query(
         self,
-        symptoms: str,
-        patient_profile: Dict[str, Any],
-        test_results: Dict[str, Any]
+        situation: str,
+        client_profile: Dict[str, Any],
+        documents: Dict[str, Any]
     ) -> str:
-        """Build comprehensive query for knowledge retrieval"""
-        query_parts = [symptoms]
+        """Build comprehensive query for legal knowledge retrieval"""
+        query_parts = [situation]
 
-        # Add relevant patient factors
-        if patient_profile.get("age"):
-            query_parts.append(f"age {patient_profile['age']}")
+        # Add relevant client factors
+        if client_profile.get("jurisdiction"):
+            query_parts.append(f"jurisdiction {client_profile['jurisdiction']}")
 
-        if patient_profile.get("chronic_conditions"):
+        if client_profile.get("legal_areas_of_interest"):
             query_parts.append(
-                f"history of {', '.join(patient_profile['chronic_conditions'])}"
+                f"areas: {', '.join(client_profile['legal_areas_of_interest'])}"
             )
 
-        # Add test results if available
-        if test_results:
-            query_parts.append(f"with findings: {str(test_results)}")
+        # Add document context if available
+        if documents:
+            query_parts.append(f"with documents: {str(documents)}")
 
         return " ".join(query_parts)
 
-    def _format_patient_info(self, patient_profile: Dict[str, Any]) -> str:
-        """Format patient information for prompt"""
+    def _format_client_info(self, client_profile: Dict[str, Any]) -> str:
+        """Format client information for prompt"""
         info_parts = []
 
-        if patient_profile.get("age"):
-            info_parts.append(f"- Age: {patient_profile['age']}")
+        if client_profile.get("occupation"):
+            info_parts.append(f"- Occupation: {client_profile['occupation']}")
 
-        if patient_profile.get("gender"):
-            info_parts.append(f"- Gender: {patient_profile['gender']}")
+        if client_profile.get("citizenship"):
+            info_parts.append(f"- Citizenship: {client_profile['citizenship']}")
 
-        if patient_profile.get("chronic_conditions"):
+        if client_profile.get("active_legal_matters"):
             info_parts.append(
-                f"- Medical History: {', '.join(patient_profile['chronic_conditions'])}"
+                f"- Active Legal Matters: {len(client_profile['active_legal_matters'])} ongoing"
             )
 
-        if patient_profile.get("current_medications"):
-            meds = [m.get('name', 'Unknown') for m in patient_profile.get('current_medications', [])]
-            info_parts.append(f"- Current Medications: {', '.join(meds)}")
+        if client_profile.get("previous_legal_issues"):
+            issues = [issue.get('type', 'Unknown') for issue in client_profile.get('previous_legal_issues', [])]
+            if issues:
+                info_parts.append(f"- Previous Legal Issues: {', '.join(issues)}")
 
-        if patient_profile.get("allergies"):
-            allergies = patient_profile['allergies']
-            all_allergies = []
-            for category, items in allergies.items():
-                if items:
-                    all_allergies.extend([f"{item} ({category})" for item in items])
-            if all_allergies:
-                info_parts.append(f"- Allergies: {', '.join(all_allergies)}")
+        if client_profile.get("legal_restrictions"):
+            if client_profile['legal_restrictions']:
+                info_parts.append(f"- Legal Restrictions: Present (see profile for details)")
 
-        if patient_profile.get("smoking_status"):
-            info_parts.append(f"- Smoking: {patient_profile['smoking_status']}")
+        if client_profile.get("business_entities"):
+            if client_profile['business_entities']:
+                info_parts.append(f"- Business Entities: {len(client_profile['business_entities'])}")
 
-        return "\n".join(info_parts) if info_parts else "No additional patient information available"
+        return "\n".join(info_parts) if info_parts else "No additional client information available"
 
-    def _parse_diagnostic_output(self, response: str) -> Dict[str, Any]:
-        """Parse the diagnostic output into structured format"""
+    def _parse_analysis_output(self, response: str) -> Dict[str, Any]:
+        """Parse the legal analysis output into structured format"""
         import re
 
         result = {
-            "differential_diagnoses": [],
-            "distinguishing_features": "",
-            "recommended_workup": "",
+            "legal_issues_identified": [],
+            "distinguishing_factors": "",
+            "recommended_information": "",
             "clarifying_questions": [],
-            "red_flags": "",
-            "clinical_reasoning": ""
+            "risk_assessment": "",
+            "legal_reasoning": ""
         }
 
-        # Extract differential diagnoses
-        dd_section = self._extract_section(response, "DIFFERENTIAL_DIAGNOSES")
-        if dd_section:
-            result["differential_diagnoses"] = self._parse_diagnoses(dd_section)
+        # Extract legal issues
+        issues_section = self._extract_section(response, "LEGAL_ISSUES_IDENTIFIED")
+        if issues_section:
+            result["legal_issues_identified"] = self._parse_legal_issues(issues_section)
 
         # Extract other sections
-        result["distinguishing_features"] = self._extract_section(
-            response, "DISTINGUISHING_FEATURES"
+        result["distinguishing_factors"] = self._extract_section(
+            response, "DISTINGUISHING_FACTORS"
         )
-        result["recommended_workup"] = self._extract_section(
-            response, "RECOMMENDED_WORKUP"
+        result["recommended_information"] = self._extract_section(
+            response, "RECOMMENDED_INFORMATION"
         )
-        result["red_flags"] = self._extract_section(response, "RED_FLAGS")
-        result["clinical_reasoning"] = self._extract_section(
-            response, "CLINICAL_REASONING"
+        result["risk_assessment"] = self._extract_section(response, "RISK_ASSESSMENT")
+        result["legal_reasoning"] = self._extract_section(
+            response, "LEGAL_REASONING"
         )
 
         # Extract clarifying questions
@@ -263,49 +260,49 @@ CLINICAL_REASONING:
             return match.group(1).strip()
         return ""
 
-    def _parse_diagnoses(self, dd_text: str) -> List[Dict[str, Any]]:
-        """Parse differential diagnoses from text"""
-        diagnoses = []
-        current_diagnosis = None
+    def _parse_legal_issues(self, issues_text: str) -> List[Dict[str, Any]]:
+        """Parse legal issues from text"""
+        issues = []
+        current_issue = None
 
-        lines = dd_text.split('\n')
+        lines = issues_text.split('\n')
         for line in lines:
             line = line.strip()
             if not line:
                 continue
 
-            # Check if this is a new diagnosis (starts with number)
+            # Check if this is a new issue (starts with number)
             if re.match(r'^\d+\.', line):
-                if current_diagnosis:
-                    diagnoses.append(current_diagnosis)
+                if current_issue:
+                    issues.append(current_issue)
 
-                # Extract condition name and ICD code
-                condition_match = re.match(
-                    r'^\d+\.\s*(.+?)(?:\s*\(ICD-10:\s*([A-Z0-9.]+)\))?',
+                # Extract issue name and area of law
+                issue_match = re.match(
+                    r'^\d+\.\s*(.+?)(?:\s*\(Area of Law:\s*([^)]+)\))?',
                     line
                 )
-                if condition_match:
-                    current_diagnosis = {
-                        "condition": condition_match.group(1).strip(),
-                        "icd10_code": condition_match.group(2),
-                        "likelihood": "",
-                        "supporting_evidence": "",
-                        "against": "",
-                        "typical_presentation": ""
+                if issue_match:
+                    current_issue = {
+                        "issue": issue_match.group(1).strip(),
+                        "area_of_law": issue_match.group(2),
+                        "relevance": "",
+                        "supporting_authority": "",
+                        "key_elements": "",
+                        "analysis": ""
                     }
-            elif current_diagnosis:
+            elif current_issue:
                 # Parse sub-fields
-                if "Likelihood:" in line:
-                    current_diagnosis["likelihood"] = line.split(":", 1)[1].strip()
-                elif "Supporting Evidence:" in line:
-                    current_diagnosis["supporting_evidence"] = line.split(":", 1)[1].strip()
-                elif "Against:" in line:
-                    current_diagnosis["against"] = line.split(":", 1)[1].strip()
-                elif "Typical Presentation:" in line:
-                    current_diagnosis["typical_presentation"] = line.split(":", 1)[1].strip()
+                if "Relevance:" in line:
+                    current_issue["relevance"] = line.split(":", 1)[1].strip()
+                elif "Supporting Legal Authority:" in line:
+                    current_issue["supporting_authority"] = line.split(":", 1)[1].strip()
+                elif "Key Elements:" in line:
+                    current_issue["key_elements"] = line.split(":", 1)[1].strip()
+                elif "Analysis:" in line:
+                    current_issue["analysis"] = line.split(":", 1)[1].strip()
 
-        # Add last diagnosis
-        if current_diagnosis:
-            diagnoses.append(current_diagnosis)
+        # Add last issue
+        if current_issue:
+            issues.append(current_issue)
 
-        return diagnoses
+        return issues

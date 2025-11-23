@@ -14,18 +14,18 @@ Base = declarative_base()
 
 class UserRole(str, enum.Enum):
     """User roles"""
-    PATIENT = "patient"
-    DOCTOR = "doctor"
+    CLIENT = "client"
+    LAWYER = "lawyer"
     ADMIN = "admin"
 
 
-class SeverityLevel(str, enum.Enum):
-    """Medical severity levels"""
-    EMERGENCY = "emergency"
-    URGENT = "urgent"
-    MODERATE = "moderate"
-    MINOR = "minor"
-    INFO = "info"
+class UrgencyLevel(str, enum.Enum):
+    """Legal matter urgency levels"""
+    CRITICAL_URGENT = "critical_urgent"  # Court deadlines, emergency injunctions
+    URGENT = "urgent"  # Time-sensitive legal matters
+    MODERATE = "moderate"  # Standard legal matters
+    ROUTINE = "routine"  # General inquiries
+    INFO = "info"  # Information only
 
 
 class User(Base):
@@ -40,7 +40,7 @@ class User(Base):
     date_of_birth = Column(DateTime)
     gender = Column(String(20))
     phone = Column(String(50))
-    role = Column(SQLEnum(UserRole), default=UserRole.PATIENT)
+    role = Column(SQLEnum(UserRole), default=UserRole.CLIENT)
 
     is_active = Column(Boolean, default=True)
     is_verified = Column(Boolean, default=False)
@@ -50,35 +50,37 @@ class User(Base):
     last_login = Column(DateTime)
 
     # Relationships
-    health_profile = relationship("HealthProfile", back_populates="user", uselist=False)
+    client_profile = relationship("ClientProfile", back_populates="user", uselist=False)
     conversations = relationship("Conversation", back_populates="user")
-    medical_history = relationship("MedicalHistory", back_populates="user")
+    case_history = relationship("CaseHistory", back_populates="user")
 
 
-class HealthProfile(Base):
-    """Patient health profile"""
-    __tablename__ = "health_profiles"
+class ClientProfile(Base):
+    """Client legal profile"""
+    __tablename__ = "client_profiles"
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), unique=True, nullable=False)
 
-    # Physical attributes
-    height_cm = Column(Float)
-    weight_kg = Column(Float)
-    blood_type = Column(String(5))
+    # Personal information
+    occupation = Column(String(255))
+    employer = Column(String(255))
+    citizenship = Column(String(100))
+    marital_status = Column(String(50))
 
-    # Medical information
-    chronic_conditions = Column(JSON)  # List of chronic conditions
-    allergies = Column(JSON)  # List of allergies (drug, food, environmental)
-    current_medications = Column(JSON)  # List of current medications
-    past_surgeries = Column(JSON)  # List of past surgeries with dates
-    family_history = Column(JSON)  # Family medical history
+    # Legal information
+    legal_areas_of_interest = Column(JSON)  # List of legal practice areas (family, criminal, corporate, etc.)
+    active_legal_matters = Column(JSON)  # List of ongoing legal matters
+    previous_legal_issues = Column(JSON)  # List of past legal issues
+    legal_restrictions = Column(JSON)  # Court orders, probation, restraining orders, etc.
 
-    # Lifestyle
-    smoking_status = Column(String(50))
-    alcohol_consumption = Column(String(50))
-    exercise_frequency = Column(String(50))
-    diet_type = Column(String(50))
+    # Business/Financial context
+    business_entities = Column(JSON)  # Owned businesses, corporations, partnerships
+    financial_concerns = Column(JSON)  # Bankruptcy, debt, tax issues
+
+    # Contact preferences
+    preferred_communication = Column(String(50))  # email, phone, in-person
+    availability = Column(JSON)  # Preferred times for consultation
 
     # Emergency contact
     emergency_contact_name = Column(String(255))
@@ -89,34 +91,38 @@ class HealthProfile(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
-    user = relationship("User", back_populates="health_profile")
+    user = relationship("User", back_populates="client_profile")
 
 
-class MedicalHistory(Base):
-    """Medical history records"""
-    __tablename__ = "medical_history"
+class CaseHistory(Base):
+    """Legal case history records"""
+    __tablename__ = "case_history"
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
-    record_type = Column(String(50))  # diagnosis, treatment, lab_result, prescription
+    record_type = Column(String(50))  # case, consultation, document_review, court_appearance
     record_date = Column(DateTime, nullable=False)
 
-    diagnosis_code = Column(String(20))  # ICD-10 code
-    diagnosis_name = Column(String(255))
+    case_number = Column(String(100))  # Court case number
+    case_type = Column(String(100))  # Civil, criminal, family, corporate, etc.
+    jurisdiction = Column(String(255))  # Court or jurisdiction
 
-    prescribed_by = Column(String(255))  # Doctor name
-    prescription_details = Column(JSON)
+    legal_issue = Column(String(500))  # Brief description of legal issue
+    case_status = Column(String(50))  # active, closed, settled, dismissed
 
-    lab_results = Column(JSON)
+    handled_by = Column(String(255))  # Attorney/lawyer name
+    law_firm = Column(String(255))
+
+    outcome = Column(Text)  # Result or current status
     notes = Column(Text)
 
-    documents = Column(JSON)  # Links to uploaded documents
+    documents = Column(JSON)  # Links to uploaded legal documents
 
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
-    user = relationship("User", back_populates="medical_history")
+    user = relationship("User", back_populates="case_history")
 
 
 class Conversation(Base):
@@ -129,16 +135,16 @@ class Conversation(Base):
     session_id = Column(String(100), unique=True, index=True, nullable=False)
     title = Column(String(255))
 
-    initial_complaint = Column(Text)
-    severity_level = Column(SQLEnum(SeverityLevel))
-    recommended_specialty = Column(String(100))
+    initial_inquiry = Column(Text)
+    urgency_level = Column(SQLEnum(UrgencyLevel))
+    recommended_legal_area = Column(String(100))  # family law, criminal defense, corporate, etc.
 
     status = Column(String(50), default="active")  # active, completed, archived
 
     # Agent outputs
-    differential_diagnoses = Column(JSON)
-    treatment_suggestions = Column(JSON)
-    emergency_flags = Column(JSON)
+    legal_issues_identified = Column(JSON)
+    legal_advice_provided = Column(JSON)
+    urgency_flags = Column(JSON)
 
     started_at = Column(DateTime, default=datetime.utcnow)
     ended_at = Column(DateTime)
@@ -201,8 +207,8 @@ class KnowledgeDocument(Base):
     id = Column(Integer, primary_key=True, index=True)
 
     title = Column(String(500), nullable=False)
-    source = Column(String(255))  # pubmed, cdc, who, fda
-    document_type = Column(String(50))  # guideline, research, drug_info
+    source = Column(String(255))  # cornell_law, justia, findlaw, legal_databases
+    document_type = Column(String(50))  # statute, case_law, regulation, legal_guide
 
     content = Column(Text)
     metadata = Column(JSON)
@@ -217,19 +223,20 @@ class KnowledgeDocument(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
-class EmergencyAlert(Base):
-    """Emergency alert records"""
-    __tablename__ = "emergency_alerts"
+class UrgentLegalAlert(Base):
+    """Urgent legal matter alert records"""
+    __tablename__ = "urgent_legal_alerts"
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     conversation_id = Column(Integer, ForeignKey("conversations.id"))
 
-    alert_type = Column(String(50), nullable=False)
-    severity = Column(SQLEnum(SeverityLevel), nullable=False)
+    alert_type = Column(String(50), nullable=False)  # deadline, court_date, statute_limitation
+    urgency = Column(SQLEnum(UrgencyLevel), nullable=False)
 
-    symptoms = Column(JSON)
-    detected_condition = Column(String(255))
+    legal_issues = Column(JSON)
+    detected_matter = Column(String(255))
+    deadline_date = Column(DateTime)  # Critical deadline if applicable
 
     recommendation = Column(Text)
 

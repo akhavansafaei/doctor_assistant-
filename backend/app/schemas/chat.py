@@ -33,7 +33,7 @@ class MessageResponse(BaseModel):
 
 class ConversationCreate(BaseModel):
     """Conversation creation schema"""
-    initial_complaint: Optional[str] = None
+    initial_inquiry: Optional[str] = None
 
 
 class ConversationResponse(BaseModel):
@@ -41,8 +41,8 @@ class ConversationResponse(BaseModel):
     id: int
     session_id: str
     title: Optional[str] = None
-    severity_level: Optional[str] = None
-    recommended_specialty: Optional[str] = None
+    urgency_level: Optional[str] = None
+    recommended_legal_area: Optional[str] = None
     status: str
     started_at: datetime
     messages: List[MessageResponse] = []
@@ -66,22 +66,22 @@ class ChatResponse(BaseModel):
     message: str
     agent_type: Optional[str] = None
     confidence_score: Optional[float] = None
-    severity_level: Optional[str] = None
-    emergency_detected: bool = False
+    urgency_level: Optional[str] = None
+    urgent_matter_detected: bool = False
 
     # Explainability
     sources: Optional[List[Dict[str, Any]]] = None
     reasoning: Optional[List[str]] = None
 
     # Recommendations
-    differential_diagnoses: Optional[List[Dict[str, Any]]] = None
+    legal_issues_identified: Optional[List[Dict[str, Any]]] = None
     recommended_actions: Optional[List[str]] = None
-    specialist_referral: Optional[str] = None
+    legal_area_referral: Optional[str] = None
 
-    # Medical disclaimer
+    # Legal disclaimer
     disclaimer: str = Field(
-        default="This is an AI assistant and not a substitute for professional medical advice. "
-        "Always consult with a qualified healthcare provider for medical decisions."
+        default="This is an AI assistant and not a substitute for professional legal advice. "
+        "Always consult with a qualified attorney for legal decisions and representation."
     )
 
     timestamp: datetime = Field(default_factory=datetime.utcnow)
@@ -93,21 +93,21 @@ class VoiceRequest(BaseModel):
     session_id: Optional[str] = None
 
 
-class ImageAnalysisRequest(BaseModel):
-    """Image analysis request"""
-    image_base64: str
-    image_type: str = Field(..., regex="^(skin|xray|lab_report|prescription)$")
+class DocumentAnalysisRequest(BaseModel):
+    """Document analysis request"""
+    document_base64: str
+    document_type: str = Field(..., regex="^(contract|legal_notice|court_document|agreement)$")
     session_id: Optional[str] = None
     additional_context: Optional[str] = None
 
 
-class ImageAnalysisResponse(BaseModel):
-    """Image analysis response"""
+class DocumentAnalysisResponse(BaseModel):
+    """Document analysis response"""
     analysis: str
-    detected_conditions: Optional[List[str]] = None
+    detected_issues: Optional[List[str]] = None
     confidence_scores: Optional[Dict[str, float]] = None
     recommendations: Optional[List[str]] = None
-    requires_urgent_care: bool = False
+    requires_urgent_attention: bool = False
     disclaimer: str = Field(
-        default="AI image analysis is preliminary. Always get a professional medical evaluation."
+        default="AI document analysis is preliminary. Always get a professional legal review from a qualified attorney."
     )

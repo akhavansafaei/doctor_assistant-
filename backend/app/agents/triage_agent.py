@@ -1,98 +1,99 @@
-"""Triage agent for initial patient assessment and emergency detection"""
+"""Intake agent for initial client assessment and urgent matter detection"""
 from typing import Dict, Any, List, Optional
 from .base_agent import BaseAgent
 import re
 
 
-class TriageAgent(BaseAgent):
+class IntakeAgent(BaseAgent):
     """
-    Triage Agent - First line assessment
-    - Detects emergency conditions
-    - Assesses severity level
-    - Routes to appropriate specialist agent
+    Intake Agent - First line client assessment
+    - Detects urgent legal matters (deadlines, court dates)
+    - Assesses urgency level
+    - Routes to appropriate legal specialist agent
     """
 
-    # Emergency keywords that trigger immediate alerts (English & Persian)
-    EMERGENCY_KEYWORDS = [
+    # Critical urgency keywords that trigger immediate alerts (English & Persian)
+    CRITICAL_URGENT_KEYWORDS = [
         # English
-        "chest pain", "difficulty breathing", "shortness of breath",
-        "severe bleeding", "heavy bleeding", "unconscious", "unresponsive",
-        "severe head injury", "can't breathe", "choking",
-        "severe allergic reaction", "anaphylaxis",
-        "stroke symptoms", "slurred speech", "facial drooping",
-        "suicidal", "suicide", "want to die",
-        "severe abdominal pain", "coughing blood", "vomiting blood",
-        "seizure", "convulsion", "overdose", "poisoning",
+        "court date tomorrow", "deadline today", "deadline tomorrow",
+        "statute of limitations", "eviction notice", "foreclosure",
+        "restraining order", "arrest warrant", "deportation",
+        "child custody emergency", "emergency injunction",
+        "termination notice", "lawsuit filed", "court summons",
+        "garnishment", "asset seizure", "bankruptcy filing",
+        "criminal charges", "indictment", "subpoena",
         # Persian/Farsi
-        "درد قفسه سینه", "درد سینه", "تنگی نفس", "نفس کشیدن سخت",
-        "خونریزی شدید", "بیهوش", "بی‌هوش", "هوشیاری ندارد",
-        "ضربه شدید سر", "نفس نمی‌کشم", "خفگی",
-        "واکنش آلرژیک شدید", "آنافیلاکسی",
-        "علائم سکته", "سکته مغزی", "گفتار نامفهوم", "افتادگی صورت",
-        "خودکشی", "می‌خواهم بمیرم", "درد شدید شکم",
-        "سرفه خون", "استفراغ خون", "تشنج", "مسمومیت"
+        "جلسه دادگاه فردا", "ضرب‌الاجل امروز", "ضرب‌الاجل فردا",
+        "مهلت قانونی", "اخطار تخلیه", "توقیف اموال",
+        "دستور بازداشت", "اخراج از کشور",
+        "اورژانس حضانت فرزند", "دستور موقت دادگاه",
+        "اخطار اخراج", "طرح دعوی", "احضاریه دادگاه",
+        "توقیف دستمزد", "ورشکستگی", "اتهامات کیفری"
     ]
 
     # Urgent keywords (English & Persian)
     URGENT_KEYWORDS = [
         # English
-        "high fever", "persistent pain", "severe pain",
-        "broken bone", "fracture", "deep cut",
-        "severe burn", "infection", "rapid heartbeat",
-        "dizziness", "fainting", "confusion",
+        "legal deadline", "contract dispute", "employment termination",
+        "divorce filing", "child support", "property dispute",
+        "debt collection", "tax audit", "visa issue",
+        "intellectual property", "trademark infringement",
+        "breach of contract", "landlord dispute", "tenant rights",
         # Persian/Farsi
-        "تب شدید", "تب بالا", "درد مداوم", "درد شدید",
-        "شکستگی استخوان", "شکستگی", "بریدگی عمیق",
-        "سوختگی شدید", "عفونت", "تپش قلب", "ضربان سریع قلب",
-        "سرگیجه", "غش", "از هوش رفتن", "گیجی"
+        "ضرب‌الاجل قانونی", "اختلاف قراردادی", "اخراج از کار",
+        "طلاق", "نفقه فرزند", "اختلاف املاک",
+        "وصول طلب", "ممیزی مالیاتی", "مشکل ویزا",
+        "مالکیت فکری", "نقض علامت تجاری",
+        "نقض قرارداد", "اختلاف مالک", "حقوق مستاجر"
     ]
 
     def __init__(self):
-        system_prompt = """You are a medical triage specialist AI assistant. Your role is to:
+        system_prompt = """You are a legal intake specialist AI assistant. Your role is to:
 
-1. Assess the severity and urgency of the patient's condition
-2. Identify any emergency or life-threatening symptoms
-3. Determine the appropriate level of care needed
-4. Route to the appropriate medical specialist
+1. Assess the urgency and time-sensitivity of the client's legal matter
+2. Identify any critical deadlines or urgent legal issues
+3. Determine the appropriate level of legal attention needed
+4. Route to the appropriate legal specialist area
 
-CRITICAL: You are NOT providing medical diagnosis. You are performing initial triage assessment.
+CRITICAL: You are NOT providing legal advice. You are performing initial intake assessment.
 
-When assessing a patient, consider:
-- Severity of symptoms (mild, moderate, severe)
-- Duration and onset of symptoms
-- Associated symptoms
-- Patient's medical history and current medications
-- Age and general health status
+When assessing a client's matter, consider:
+- Time sensitivity (deadlines, court dates, statutes of limitation)
+- Severity of potential legal consequences
+- Complexity of the legal issue
+- Client's legal history and current legal matters
+- Jurisdiction and applicable laws
 
-Severity Levels:
-- EMERGENCY: Life-threatening, requires immediate medical attention (911/ER)
-- URGENT: Serious condition, needs medical care within hours
-- MODERATE: Should see doctor within 1-2 days
-- MINOR: Can manage with self-care or routine appointment
-- INFO: General health information or prevention
+Urgency Levels:
+- CRITICAL_URGENT: Time-critical matters requiring immediate legal attention (imminent court dates, expiring deadlines, emergency injunctions)
+- URGENT: Serious legal matters that need attorney consultation within days
+- MODERATE: Legal matters that should be addressed within weeks
+- ROUTINE: Can be handled through standard legal consultation process
+- INFO: General legal information or educational questions
 
-Always err on the side of caution. If unsure, escalate to higher severity level.
+Always err on the side of caution. If unsure about deadlines or urgency, escalate to higher urgency level.
 
 Provide your assessment in a clear, structured format including:
-1. Severity level
-2. Reasoning
+1. Urgency level
+2. Legal reasoning
 3. Immediate recommendations
-4. Suggested specialist (if applicable)
+4. Suggested legal area/practice (if applicable)
+5. Critical deadlines (if any)
 """
 
         super().__init__(
-            name="Triage Agent",
-            description="Initial assessment and emergency detection",
+            name="Intake Agent",
+            description="Initial client assessment and urgent matter detection",
             system_prompt=system_prompt,
             use_rag=True
         )
 
-    def detect_emergency_keywords(self, text: str) -> List[str]:
-        """Detect emergency keywords in text"""
+    def detect_critical_urgent_keywords(self, text: str) -> List[str]:
+        """Detect critical urgent keywords in text"""
         text_lower = text.lower()
         detected = []
 
-        for keyword in self.EMERGENCY_KEYWORDS:
+        for keyword in self.CRITICAL_URGENT_KEYWORDS:
             if keyword in text_lower:
                 detected.append(keyword)
 
@@ -115,43 +116,43 @@ Provide your assessment in a clear, structured format including:
         context: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """
-        Process triage assessment
+        Process intake assessment
 
         Args:
-            input_data: Contains 'message' and optionally 'patient_profile'
+            input_data: Contains 'message' and optionally 'client_profile'
             context: Additional context like conversation history
 
         Returns:
-            Triage assessment with severity, recommendations, and routing
+            Intake assessment with urgency, recommendations, and routing
         """
         message = input_data.get("message", "")
-        patient_profile = input_data.get("patient_profile", {})
+        client_profile = input_data.get("client_profile", {})
 
-        # Quick keyword-based emergency detection
-        emergency_keywords = self.detect_emergency_keywords(message)
+        # Quick keyword-based critical urgency detection
+        critical_keywords = self.detect_critical_urgent_keywords(message)
         urgent_keywords = self.detect_urgent_keywords(message)
 
-        # If emergency keywords detected, immediately flag
-        if emergency_keywords:
+        # If critical urgent keywords detected, immediately flag
+        if critical_keywords:
             return {
                 "agent": self.name,
-                "severity": "EMERGENCY",
-                "emergency_detected": True,
-                "detected_keywords": emergency_keywords,
-                "immediate_action": "CALL 911 OR GO TO EMERGENCY ROOM IMMEDIATELY",
-                "reasoning": f"Emergency keywords detected: {', '.join(emergency_keywords)}. This requires immediate medical attention.",
-                "route_to": "emergency_services",
+                "urgency": "CRITICAL_URGENT",
+                "urgent_matter_detected": True,
+                "detected_keywords": critical_keywords,
+                "immediate_action": "CONSULT WITH AN ATTORNEY IMMEDIATELY - TIME-SENSITIVE LEGAL MATTER",
+                "reasoning": f"Critical urgent keywords detected: {', '.join(critical_keywords)}. This requires immediate legal attention to protect your rights.",
+                "route_to": "urgent_legal_services",
                 "confidence": 0.95
             }
 
-        # Retrieve relevant medical knowledge
+        # Retrieve relevant legal knowledge
         retrieved_docs = await self.retrieve_context(
             query=message,
-            filters={"document_type": "clinical_guideline"}
+            filters={"document_type": "statute"}
         )
 
         # Format context
-        medical_context = self.format_context(retrieved_docs)
+        legal_context = self.format_context(retrieved_docs)
 
         # Get long-term memory context
         long_term_memory = context.get("long_term_memory", "") if context else ""
@@ -161,39 +162,34 @@ Provide your assessment in a clear, structured format including:
         language_code, language_instruction = self.detect_and_format_language(message, context)
 
         # Build comprehensive prompt
-        patient_context = ""
-        if patient_profile:
-            patient_context = f"\nPatient Information:\n"
-            if patient_profile.get("age"):
-                patient_context += f"- Age: {patient_profile['age']}\n"
-            if patient_profile.get("chronic_conditions"):
-                patient_context += f"- Chronic Conditions: {', '.join(patient_profile['chronic_conditions'])}\n"
-            if patient_profile.get("current_medications"):
-                meds = [m.get('name', 'Unknown') for m in patient_profile['current_medications']]
-                patient_context += f"- Current Medications: {', '.join(meds)}\n"
-            if patient_profile.get("allergies"):
-                allergies = patient_profile['allergies']
-                all_allergies = []
-                for category, items in allergies.items():
-                    all_allergies.extend(items)
-                if all_allergies:
-                    patient_context += f"- Allergies: {', '.join(all_allergies)}\n"
+        client_context = ""
+        if client_profile:
+            client_context = f"\nClient Information:\n"
+            if client_profile.get("occupation"):
+                client_context += f"- Occupation: {client_profile['occupation']}\n"
+            if client_profile.get("active_legal_matters"):
+                client_context += f"- Active Legal Matters: {len(client_profile['active_legal_matters'])}\n"
+            if client_profile.get("legal_areas_of_interest"):
+                client_context += f"- Legal Areas of Interest: {', '.join(client_profile['legal_areas_of_interest'])}\n"
+            if client_profile.get("legal_restrictions"):
+                if client_profile['legal_restrictions']:
+                    client_context += f"- Legal Restrictions: Present (details in profile)\n"
 
-        assessment_prompt = f"""Perform triage assessment for the following patient complaint:
+        assessment_prompt = f"""Perform intake assessment for the following client inquiry:
 
 {message}
-{patient_context}
+{client_context}
 {memory_context}
-{medical_context}
+{legal_context}
 
 Provide your assessment in the following format:
 
-SEVERITY: [EMERGENCY/URGENT/MODERATE/MINOR/INFO]
-REASONING: [Your clinical reasoning for the severity assessment]
-IMMEDIATE_RECOMMENDATIONS: [What the patient should do immediately]
-SPECIALIST_REFERRAL: [Type of doctor they should see, if applicable]
-TIMEFRAME: [How quickly they need to be seen]
-RED_FLAGS: [Any warning signs to watch for]
+URGENCY: [CRITICAL_URGENT/URGENT/MODERATE/ROUTINE/INFO]
+LEGAL_REASONING: [Your legal reasoning for the urgency assessment]
+IMMEDIATE_RECOMMENDATIONS: [What the client should do immediately]
+LEGAL_AREA_REFERRAL: [Practice area they should consult - family law, criminal defense, corporate, etc.]
+TIMEFRAME: [How quickly they need legal consultation]
+CRITICAL_DEADLINES: [Any time-sensitive deadlines to be aware of]
 {language_instruction}"""
 
         # Get conversation history
@@ -209,26 +205,26 @@ RED_FLAGS: [Any warning signs to watch for]
         response = await self.invoke_llm(messages)
 
         # Parse response
-        severity = self._extract_field(response, "SEVERITY")
-        reasoning = self._extract_field(response, "REASONING")
+        urgency = self._extract_field(response, "URGENCY")
+        reasoning = self._extract_field(response, "LEGAL_REASONING")
         recommendations = self._extract_field(response, "IMMEDIATE_RECOMMENDATIONS")
-        specialist = self._extract_field(response, "SPECIALIST_REFERRAL")
+        legal_area = self._extract_field(response, "LEGAL_AREA_REFERRAL")
         timeframe = self._extract_field(response, "TIMEFRAME")
-        red_flags = self._extract_field(response, "RED_FLAGS")
+        deadlines = self._extract_field(response, "CRITICAL_DEADLINES")
 
         # Determine routing
-        route_to = self._determine_routing(severity, specialist)
+        route_to = self._determine_routing(urgency, legal_area)
 
         return {
             "agent": self.name,
-            "severity": severity or "MODERATE",
-            "emergency_detected": severity == "EMERGENCY",
+            "urgency": urgency or "MODERATE",
+            "urgent_matter_detected": urgency == "CRITICAL_URGENT",
             "detected_keywords": urgent_keywords if urgent_keywords else [],
             "reasoning": reasoning,
             "immediate_recommendations": recommendations,
-            "specialist_referral": specialist,
+            "legal_area_referral": legal_area,
             "timeframe": timeframe,
-            "red_flags": red_flags,
+            "critical_deadlines": deadlines,
             "route_to": route_to,
             "sources": [
                 {
@@ -249,12 +245,12 @@ RED_FLAGS: [Any warning signs to watch for]
             return match.group(1).strip()
         return ""
 
-    def _determine_routing(self, severity: str, specialist: str) -> str:
+    def _determine_routing(self, urgency: str, legal_area: str) -> str:
         """Determine which agent should handle this next"""
-        if severity == "EMERGENCY":
-            return "emergency_services"
-        elif severity == "INFO":
-            return "health_education_agent"
+        if urgency == "CRITICAL_URGENT":
+            return "urgent_legal_services"
+        elif urgency == "INFO":
+            return "legal_education_agent"
         else:
-            # Route to diagnostic agent for further assessment
-            return "diagnostic_agent"
+            # Route to legal analysis agent for further assessment
+            return "legal_analysis_agent"

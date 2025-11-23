@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     )
 
     # Application
-    app_name: str = "AI Doctor Chatbot"
+    app_name: str = "AI Law Assistant"
     app_version: str = "1.0.0"
     environment: str = "development"
     debug: bool = True
@@ -57,7 +57,7 @@ class Settings(BaseSettings):
     qdrant_host: str = "localhost"
     qdrant_port: int = 6333
     qdrant_api_key: Optional[str] = None
-    qdrant_collection_name: str = "medical_knowledge"
+    qdrant_collection_name: str = "legal_knowledge"
 
     # LLM APIs
     openai_api_key: Optional[str] = None
@@ -81,8 +81,8 @@ class Settings(BaseSettings):
 
     # Safety
     enable_guardrails: bool = True
-    emergency_alert_email: Optional[str] = None
-    emergency_alert_phone: Optional[str] = None
+    urgent_legal_alert_email: Optional[str] = None
+    urgent_legal_alert_phone: Optional[str] = None
 
     # RAG Settings
     chunk_size: int = 512

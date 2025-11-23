@@ -1,8 +1,8 @@
-# 🏥 AI Doctor Chatbot - State-of-the-Art Medical Assistant
+# ⚖️ AI Law Assistant - State-of-the-Art Legal Support System
 
-> **سلامت‌نگار (SalamatNegar)** - Your Intelligent Health Companion
+> **قانون‌یار (GhanooonYar)** - Your Intelligent Legal Companion
 
-A cutting-edge AI-powered medical chatbot featuring RAG (Retrieval Augmented Generation), multi-agent workflows, advanced safety guardrails, and SOTA (State-of-the-Art) LLM capabilities.
+A cutting-edge AI-powered legal assistant featuring RAG (Retrieval Augmented Generation), multi-agent workflows, advanced safety guardrails, and SOTA (State-of-the-Art) LLM capabilities.
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.109.0-009688.svg)](https://fastapi.tiangolo.com)
@@ -11,430 +11,321 @@ A cutting-edge AI-powered medical chatbot featuring RAG (Retrieval Augmented Gen
 
 ---
 
-## ⚠️ Medical Disclaimer
+## ⚠️ Legal Disclaimer
 
-**THIS IS NOT A MEDICAL DEVICE AND SHOULD NOT BE USED FOR EMERGENCY SITUATIONS**
+**THIS IS NOT A SUBSTITUTE FOR PROFESSIONAL LEGAL ADVICE AND SHOULD NOT BE USED FOR URGENT LEGAL MATTERS WITHOUT ATTORNEY CONSULTATION**
 
-This AI chatbot is designed for educational and informational purposes only. It is NOT:
-- A substitute for professional medical advice, diagnosis, or treatment
-- Intended to diagnose or treat any medical condition
-- A replacement for in-person medical evaluation
-- Able to prescribe medications
+This AI legal assistant is designed for educational and informational purposes only. It is NOT:
+- A substitute for professional legal advice, consultation, or representation
+- Intended to create an attorney-client relationship
+- A replacement for consultation with a qualified attorney
+- Able to provide legal opinions or represent you in court
 
-**Always seek the advice of your physician or other qualified health provider with any questions you may have regarding a medical condition.**
+**Always seek the advice of a qualified attorney or other legal professional with any questions you may have regarding a legal matter.**
 
-**In case of emergency, call 911 (US) or your local emergency services immediately.**
+**In case of urgent legal deadlines, court dates, or time-sensitive matters, consult with an attorney immediately.**
 
 ---
 
 ## 🌟 Features
 
 ### Core AI Capabilities
-- ✅ **Multi-Agent System**: Specialized agents for triage, diagnosis, and treatment planning
-- ✅ **Advanced RAG**: Hybrid retrieval (dense + sparse) with reranking
+- ✅ **Multi-Agent System**: Specialized agents for intake, legal analysis, and advice
+- ✅ **Advanced RAG**: Hybrid retrieval (dense + sparse) with reranking for legal documents
 - ✅ **LangGraph Orchestration**: State-machine based agent coordination
-- ✅ **Medical Knowledge Base**: Integration with clinical guidelines and medical literature
-- ✅ **Multimodal Support**: Text, voice (STT), and image analysis capabilities
+- ✅ **Legal Knowledge Base**: Integration with statutes, case law, and legal regulations
+- ✅ **Multimodal Support**: Text, voice (STT), and document analysis capabilities
 
 ### Safety & Compliance
-- ✅ **Emergency Detection**: Automatic identification of life-threatening conditions
+- ✅ **Urgency Detection**: Automatic identification of time-sensitive legal matters
 - ✅ **Safety Guardrails**: Hallucination prevention and output validation
-- ✅ **HIPAA/GDPR Compliance**: Audit logging, data encryption, consent management
-- ✅ **Medical Disclaimers**: Automatic disclaimer injection for all medical advice
+- ✅ **Privacy Compliance**: Audit logging, data encryption, consent management
+- ✅ **Legal Disclaimers**: Automatic disclaimer injection for all legal guidance
 
 ### Intelligent Features
-- ✅ **Differential Diagnosis**: Multiple possible conditions with confidence scores
-- ✅ **Evidence-Based Treatment**: Recommendations based on clinical guidelines
-- ✅ **Drug Interaction Checking**: Validation against current medications
-- ✅ **Symptom Timeline Tracking**: Temporal reasoning for symptom progression
-- ✅ **Specialist Routing**: Recommendation for appropriate medical specialty
+- ✅ **Legal Issue Spotting**: Identification of multiple potential legal issues
+- ✅ **Legal Analysis**: Analysis based on applicable statutes and case law
+- ✅ **Deadline Tracking**: Detection of critical legal deadlines and statutes of limitations
+- ✅ **Jurisdiction Awareness**: Consideration of applicable laws based on jurisdiction
+- ✅ **Practice Area Routing**: Recommendation for appropriate legal specialty
 
-### Technical Excellence
-- ✅ **Vector Database**: Qdrant for semantic search
-- ✅ **Real-time Processing**: Async/await throughout
-- ✅ **Scalable Architecture**: Microservices-ready design
-- ✅ **Comprehensive API**: RESTful endpoints with OpenAPI docs
-- ✅ **Docker Support**: One-command deployment
+### Bilingual Support
+- ✅ **English/Persian (Farsi)**: Automatic language detection and response
+- ✅ **Localized Legal Terms**: Proper legal terminology in both languages
+- ✅ **Seamless Switching**: Natural language switching within conversations
+
+### Advanced Architecture
+- ✅ **Intelligent Memory System**:
+  - **Short-term memory**: Within-conversation context retention
+  - **Long-term memory**: Automatic summarization and retrieval of past case context
+  - **Smart Context Injection**: Relevant historical information included automatically
+- ✅ **Profile Management**: Comprehensive client legal profiles
+- ✅ **WebSocket Support**: Real-time streaming responses
+- ✅ **Conversation Management**: Session persistence and history tracking
 
 ---
 
 ## 🏗️ Architecture
 
+### Multi-Agent Workflow
+
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                     User Interface                           │
-│              (Web/Mobile/Voice/API)                          │
-└─────────────────────┬───────────────────────────────────────┘
-                      │
-┌─────────────────────▼───────────────────────────────────────┐
-│                  FastAPI Backend                             │
-│  ┌────────────────────────────────────────────────────┐    │
-│  │         Agent Orchestrator (LangGraph)              │    │
-│  │  ┌──────────┐  ┌──────────┐  ┌──────────┐          │    │
-│  │  │ Triage   │→ │Diagnostic│→ │Treatment │          │    │
-│  │  │ Agent    │  │ Agent    │  │ Agent    │          │    │
-│  │  └──────────┘  └──────────┘  └──────────┘          │    │
-│  └────────────────────────────────────────────────────┘    │
-│  ┌────────────────────────────────────────────────────┐    │
-│  │           Safety & Compliance Layer                 │    │
-│  │  • Emergency Detector  • Guardrails  • Audit Log   │    │
-│  └────────────────────────────────────────────────────┘    │
-└─────────────────────┬───────────────────────────────────────┘
-                      │
-┌─────────────────────▼───────────────────────────────────────┐
-│                   RAG & Data Layer                           │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐   │
-│  │ Qdrant   │  │PostgreSQL│  │  Redis   │  │   LLM    │   │
-│  │ (Vector) │  │   (SQL)  │  │ (Cache)  │  │ (GPT-4)  │   │
-│  └──────────┘  └──────────┘  └──────────┘  └──────────┘   │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────┐
+│  User Inquiry   │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────────┐
+│  Intake Agent       │  ← Detects urgency & routes
+│  - Urgency Assessment
+│  - Keyword Detection
+│  - Initial Routing
+└────────┬────────────┘
+         │
+         ▼
+┌─────────────────────┐
+│ Legal Analysis      │  ← Identifies legal issues
+│ Agent               │
+│  - Issue Spotting
+│  - Statute/Case Law
+│  - Risk Assessment
+└────────┬────────────┘
+         │
+         ▼
+┌─────────────────────┐
+│ Legal Advice Agent  │  ← Provides guidance
+│  - Options Analysis
+│  - Recommendations
+│  - Next Steps
+└────────┬────────────┘
+         │
+         ▼
+┌─────────────────────┐
+│  Response to User   │
+│  + Legal Disclaimer │
+└─────────────────────┘
 ```
 
-**See [ARCHITECTURE.md](./ARCHITECTURE.md) for detailed architecture documentation.**
+### Technology Stack
+
+#### Backend
+- **Framework**: FastAPI (async/await)
+- **AI/LLM**:
+  - OpenAI GPT-4 Turbo / Anthropic Claude
+  - LangChain for LLM orchestration
+  - LangGraph for multi-agent workflows
+- **Vector Database**: Qdrant (for RAG)
+- **Database**: PostgreSQL (user data, conversations)
+- **Cache**: Redis (session management)
+- **Embeddings**: OpenAI text-embedding-3-large
+
+#### Frontend
+- **Framework**: React 18 + TypeScript
+- **State Management**: Zustand
+- **UI Library**: Material-UI (MUI)
+- **Internationalization**: Custom i18n system (English/Persian)
+- **Real-time**: WebSocket client
 
 ---
 
 ## 🚀 Quick Start
 
 ### Prerequisites
+- Python 3.11+
+- Node.js 18+
+- PostgreSQL 14+
+- Redis 7+
+- Qdrant (vector database)
 
-- **Docker & Docker Compose** (Recommended) OR
-- Python 3.11+, PostgreSQL, Redis, Qdrant
+### Environment Setup
 
-### Option 1: Docker (Recommended)
-
+1. **Clone the repository**
 ```bash
-# 1. Clone the repository
 git clone <repository-url>
-cd doctor_assistant-
-
-# 2. Create .env file
-cp .env.example .env
-
-# 3. Edit .env and add your API keys
-# Required: OPENAI_API_KEY, SECRET_KEY
-nano .env
-
-# 4. Start all services
-docker-compose up -d
-
-# 5. Check health
-curl http://localhost:8000/health
-
-# 6. Access API documentation
-open http://localhost:8000/api/docs
+cd law_assistant
 ```
 
-### Option 2: Manual Setup
-
+2. **Backend Setup**
 ```bash
-# 1. Clone and navigate
-git clone <repository-url>
-cd doctor_assistant-/backend
+cd backend
 
-# 2. Create virtual environment
+# Create virtual environment
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-# 3. Install dependencies
+# Install dependencies
 pip install -r requirements.txt
 
-# 4. Setup environment variables
-cp ../.env.example ../.env
-# Edit .env with your configuration
+# Copy environment file
+cp .env.example .env
 
-# 5. Start dependencies
-# Start PostgreSQL, Redis, and Qdrant separately
+# Edit .env with your API keys and database credentials
+nano .env
+```
 
-# 6. Run the application
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+3. **Frontend Setup**
+```bash
+cd frontend
+
+# Install dependencies
+npm install
+
+# Copy environment file (if needed)
+cp .env.example .env
+```
+
+4. **Database Setup**
+```bash
+# Run PostgreSQL migrations
+cd backend
+alembic upgrade head
+```
+
+5. **Start Services**
+```bash
+# Terminal 1: Backend
+cd backend
+uvicorn app.main:app --reload
+
+# Terminal 2: Frontend
+cd frontend
+npm run dev
+
+# Terminal 3: Redis (if not running as service)
+redis-server
+
+# Terminal 4: Qdrant (if not running as service)
+docker run -p 6333:6333 qdrant/qdrant
+```
+
+6. **Access the Application**
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:8000
+- API Documentation: http://localhost:8000/docs
+
+---
+
+## 📖 Documentation
+
+Detailed documentation is available in the `/docs` folder:
+- [Architecture Guide](./ARCHITECTURE.md) - System design and component overview
+- [Profile & Onboarding](./PROFILE_ONBOARDING_GUIDE.md) - Client profile management
+- [Memory System](./MEMORY_SYSTEM_GUIDE.md) - Short-term and long-term memory
+- [WebSocket Guide](./WEBSOCKET_GUIDE.md) - Real-time communication
+- [Bilingual Support](./BILINGUAL_SUPPORT_GUIDE.md) - English/Persian implementation
+- [Deployment Guide](./DEPLOYMENT.md) - Production deployment
+
+---
+
+## 🧪 Example Use Cases
+
+### General Legal Inquiry
+```
+User: "I received a lease termination notice. What are my rights?"
+
+AI: [Intake Agent assesses urgency]
+    [Legal Analysis Agent identifies: tenant rights, lease law, notice requirements]
+    [Legal Advice Agent provides: options, timeline, recommended actions]
+
+Response: Based on your situation, several legal issues may apply...
+          1. Lease termination requirements (varies by jurisdiction)
+          2. Tenant rights and protections
+          3. Notice period compliance
+
+          I recommend consulting with a tenant rights attorney to...
+```
+
+### Time-Sensitive Matter
+```
+User: "Court date tomorrow, haven't prepared"
+
+AI: [CRITICAL_URGENT detected]
+    → Immediate recommendation to contact attorney
+    → Explains consequences of missing court date
+    → Provides emergency legal resources
 ```
 
 ---
 
-## 📚 API Documentation
+## 🔒 Security & Privacy
 
-### Interactive Docs
-
-Once running, visit:
-- **Swagger UI**: http://localhost:8000/api/docs
-- **ReDoc**: http://localhost:8000/api/redoc
-- **WebSocket**: `ws://localhost:8000/api/v1/ws/chat` (see [WEBSOCKET_GUIDE.md](./WEBSOCKET_GUIDE.md))
-
-### WebSocket (Real-time Streaming) 🆕
-
-```javascript
-// Connect to WebSocket for token-by-token streaming
-const ws = new WebSocket('ws://localhost:8000/api/v1/ws/chat');
-
-ws.onmessage = (event) => {
-    const data = JSON.parse(event.data);
-    if (data.type === 'token') {
-        console.log(data.content); // Stream tokens in real-time!
-    }
-};
-
-ws.send(JSON.stringify({
-    message: "I have a headache",
-    enable_agents: true
-}));
-```
-
-**See [WEBSOCKET_GUIDE.md](./WEBSOCKET_GUIDE.md) for complete documentation and examples.**
-
-### Key Endpoints
-
-#### Chat
-```bash
-# Send a message
-curl -X POST http://localhost:8000/api/v1/chat/message \
-  -H "Content-Type: application/json" \
-  -d '{
-    "message": "I have a severe headache and nausea for 2 days",
-    "enable_agents": true,
-    "include_sources": true
-  }'
-
-# Quick emergency check
-curl "http://localhost:8000/api/v1/chat/emergency-check?message=chest%20pain"
-
-# Get conversation history
-curl http://localhost:8000/api/v1/chat/history/{session_id}
-```
-
-#### Authentication
-```bash
-# Register
-curl -X POST http://localhost:8000/api/v1/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "user@example.com",
-    "username": "johndoe",
-    "password": "SecurePass123!",
-    "full_name": "John Doe"
-  }'
-
-# Login
-curl -X POST http://localhost:8000/api/v1/auth/login \
-  -d "username=johndoe&password=SecurePass123!"
-```
-
-#### Health Profile
-```bash
-# Create health profile
-curl -X POST http://localhost:8000/api/v1/profile/health-profile \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "height_cm": 175,
-    "weight_kg": 70,
-    "chronic_conditions": ["hypertension"],
-    "allergies": {"drug": ["penicillin"]},
-    "current_medications": [{"name": "Lisinopril", "dose": "10mg"}]
-  }'
-```
+- **Data Encryption**: All data encrypted at rest and in transit (TLS 1.3)
+- **Authentication**: JWT-based with refresh tokens
+- **Authorization**: Role-based access control (Client, Lawyer, Admin)
+- **Audit Logging**: Complete audit trail of all actions
+- **GDPR Compliance**: Right to deletion, data export, consent management
+- **Confidentiality**: Attorney-client privilege considerations in design
 
 ---
 
-## 🔧 Configuration
+## 🛠️ Development
 
-### Environment Variables
-
-Key configurations in `.env`:
-
+### Running Tests
 ```bash
-# LLM APIs
-OPENAI_API_KEY=sk-your-key-here
-ANTHROPIC_API_KEY=sk-ant-your-key
-COHERE_API_KEY=your-cohere-key
-
-# LLM Settings
-PRIMARY_LLM=openai  # or anthropic
-LLM_MODEL=gpt-4-turbo-preview
-LLM_TEMPERATURE=0.1
-
-# RAG Settings
-TOP_K_RETRIEVAL=10
-RERANK_TOP_K=5
-HYBRID_ALPHA=0.5  # Balance dense vs sparse
-
-# Safety
-ENABLE_GUARDRAILS=True
-EMERGENCY_ALERT_EMAIL=emergency@hospital.com
-
-# Database
-DATABASE_URL=postgresql+asyncpg://user:pass@localhost:5432/db
-REDIS_HOST=localhost
-QDRANT_HOST=localhost
-```
-
----
-
-## 🧪 Testing
-
-```bash
-# Run tests
+# Backend tests
 cd backend
 pytest
 
-# With coverage
-pytest --cov=app --cov-report=html
+# Frontend tests
+cd frontend
+npm test
+```
 
-# Test specific module
-pytest tests/test_agents.py -v
+### Code Quality
+```bash
+# Backend linting
+cd backend
+pylint app/
+black app/
+
+# Frontend linting
+cd frontend
+npm run lint
 ```
 
 ---
 
-## 📖 Usage Examples
+## 📊 Roadmap
 
-### Example 1: Basic Symptom Assessment
-
-```python
-import requests
-
-response = requests.post(
-    "http://localhost:8000/api/v1/chat/message",
-    json={
-        "message": "I've had a persistent cough for a week with fever",
-        "enable_agents": True,
-        "include_sources": True
-    }
-)
-
-result = response.json()
-print(f"Severity: {result['severity_level']}")
-print(f"Response: {result['message']}")
-```
-
-### Example 2: With Patient Profile
-
-```python
-response = requests.post(
-    "http://localhost:8000/api/v1/chat/message",
-    json={
-        "message": "Sharp pain in lower abdomen",
-        "enable_agents": True,
-        "context": {
-            "patient_profile": {
-                "age": 45,
-                "chronic_conditions": ["diabetes"],
-                "current_medications": [
-                    {"name": "Metformin", "dose": "500mg twice daily"}
-                ],
-                "allergies": {"drug": ["sulfa drugs"]}
-            }
-        }
-    }
-)
-```
-
-### Example 3: Emergency Detection
-
-```python
-response = requests.post(
-    "http://localhost:8000/api/v1/chat/message",
-    json={
-        "message": "Severe chest pain radiating to left arm, shortness of breath",
-        "enable_agents": True
-    }
-)
-
-# Response will include emergency_detected: true
-# And immediate action instructions
-```
-
----
-
-## 🛡️ Safety Features
-
-### Emergency Detection
-- Automatically detects life-threatening conditions
-- Provides immediate action instructions
-- Routes to emergency services when necessary
-
-### Hallucination Prevention
-- Cross-references LLM outputs with knowledge base
-- Validates medical claims
-- Flags inappropriate certainty
-
-### Compliance
-- HIPAA-compliant audit logging
-- GDPR right to erasure
-- Data anonymization for analytics
-- Consent management
-
----
-
-## 🗺️ Roadmap
-
-### Phase 1: Current ✅
-- Multi-agent RAG system
-- Safety guardrails
-- Basic chat interface
-- Emergency detection
-
-### Phase 2: In Progress 🚧
-- Multimodal support (images, voice)
-- Real-time vital sign integration
-- Telemedicine preparation
-- Advanced analytics dashboard
-
-### Phase 3: Future 🔮
-- Wearable device integration
-- Predictive health analytics
-- Digital twin modeling
-- FHIR standard integration
-- Blockchain medical records
+- [ ] Additional legal practice area modules (Tax, IP, Immigration)
+- [ ] Court filing integration
+- [ ] Document generation (contracts, letters, motions)
+- [ ] Legal calendar with deadline reminders
+- [ ] Multi-jurisdiction support
+- [ ] Attorney collaboration features
+- [ ] Mobile applications (iOS/Android)
 
 ---
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+Contributions are welcome! Please read [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
 
 ---
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
 
 ---
 
-## 🙏 Acknowledgments
+## ⚠️ Important Notes
 
-- **OpenAI** for GPT-4 and embeddings
-- **Anthropic** for Claude
-- **LangChain** for agent framework
-- **Qdrant** for vector database
-- **FastAPI** for web framework
-
----
-
-## 📞 Support & Contact
-
-- **Issues**: [GitHub Issues](https://github.com/your-username/doctor_assistant/issues)
-- **Email**: support@salamatnegar.com
-- **Documentation**: [Full Docs](https://docs.salamatnegar.com)
+1. **Not Legal Advice**: This system provides general legal information, not legal advice
+2. **Jurisdiction Specific**: Laws vary by location - always verify with local attorney
+3. **No Attorney-Client Relationship**: Using this system does not create any legal relationship
+4. **For Educational Purposes**: This is a demonstration of AI capabilities in legal domain
+5. **Professional Consultation Required**: Always consult with a qualified attorney for legal matters
 
 ---
 
-## ⚖️ Legal Notice
+## 📧 Contact
 
-This software is provided "as is" without warranty of any kind. The developers are not liable for any damages arising from its use. This is an educational project and should not be used for actual medical decision-making without proper medical supervision.
-
-By using this software, you acknowledge that:
-- This is NOT a medical device
-- It does NOT replace professional medical advice
-- You will seek professional medical care for health concerns
-- The developers are not responsible for medical decisions made based on this software
+For questions, issues, or feedback:
+- GitHub Issues: [Project Issues](./issues)
+- Documentation: See `/docs` folder
+- Email: [contact information]
 
 ---
 
-**Made with ❤️ for better healthcare accessibility**
+**Built with ❤️ using state-of-the-art AI technology**
