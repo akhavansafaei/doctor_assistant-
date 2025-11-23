@@ -12,8 +12,9 @@ class TriageAgent(BaseAgent):
     - Routes to appropriate specialist agent
     """
 
-    # Emergency keywords that trigger immediate alerts
+    # Emergency keywords that trigger immediate alerts (English & Persian)
     EMERGENCY_KEYWORDS = [
+        # English
         "chest pain", "difficulty breathing", "shortness of breath",
         "severe bleeding", "heavy bleeding", "unconscious", "unresponsive",
         "severe head injury", "can't breathe", "choking",
@@ -21,19 +22,33 @@ class TriageAgent(BaseAgent):
         "stroke symptoms", "slurred speech", "facial drooping",
         "suicidal", "suicide", "want to die",
         "severe abdominal pain", "coughing blood", "vomiting blood",
-        "seizure", "convulsion", "overdose", "poisoning"
+        "seizure", "convulsion", "overdose", "poisoning",
+        # Persian/Farsi
+        "درد قفسه سینه", "درد سینه", "تنگی نفس", "نفس کشیدن سخت",
+        "خونریزی شدید", "بیهوش", "بی‌هوش", "هوشیاری ندارد",
+        "ضربه شدید سر", "نفس نمی‌کشم", "خفگی",
+        "واکنش آلرژیک شدید", "آنافیلاکسی",
+        "علائم سکته", "سکته مغزی", "گفتار نامفهوم", "افتادگی صورت",
+        "خودکشی", "می‌خواهم بمیرم", "درد شدید شکم",
+        "سرفه خون", "استفراغ خون", "تشنج", "مسمومیت"
     ]
 
-    # Urgent keywords
+    # Urgent keywords (English & Persian)
     URGENT_KEYWORDS = [
+        # English
         "high fever", "persistent pain", "severe pain",
         "broken bone", "fracture", "deep cut",
         "severe burn", "infection", "rapid heartbeat",
-        "dizziness", "fainting", "confusion"
+        "dizziness", "fainting", "confusion",
+        # Persian/Farsi
+        "تب شدید", "تب بالا", "درد مداوم", "درد شدید",
+        "شکستگی استخوان", "شکستگی", "بریدگی عمیق",
+        "سوختگی شدید", "عفونت", "تپش قلب", "ضربان سریع قلب",
+        "سرگیجه", "غش", "از هوش رفتن", "گیجی"
     ]
 
     def __init__(self):
-        system_prompt = """You are a medical triage specialist AI assistant. Your role is to:
+        system_prompt = """You are a bilingual medical triage specialist AI assistant (English/Persian). Your role is to:
 
 1. Assess the severity and urgency of the patient's condition
 2. Identify any emergency or life-threatening symptoms
@@ -41,6 +56,13 @@ class TriageAgent(BaseAgent):
 4. Route to the appropriate medical specialist
 
 CRITICAL: You are NOT providing medical diagnosis. You are performing initial triage assessment.
+
+BILINGUAL SUPPORT:
+- You MUST respond in the SAME LANGUAGE as the user's message
+- If user writes in English, respond in English
+- If user writes in Persian/Farsi (فارسی), respond in Persian/Farsi
+- Maintain professional medical terminology in the appropriate language
+- Use culturally appropriate communication style
 
 When assessing a patient, consider:
 - Severity of symptoms (mild, moderate, severe)
@@ -51,10 +73,15 @@ When assessing a patient, consider:
 
 Severity Levels:
 - EMERGENCY: Life-threatening, requires immediate medical attention (911/ER)
+  فوریت: تهدید کننده زندگی، نیاز به مراقبت پزشکی فوری (اورژانس)
 - URGENT: Serious condition, needs medical care within hours
+  فوری: وضعیت جدی، نیاز به مراقبت پزشکی در عرض چند ساعت
 - MODERATE: Should see doctor within 1-2 days
+  متوسط: باید ظرف ۱-۲ روز به پزشک مراجعه کند
 - MINOR: Can manage with self-care or routine appointment
+  جزئی: قابل مدیریت با مراقبت شخصی یا نوبت معمولی
 - INFO: General health information or prevention
+  اطلاعاتی: اطلاعات عمومی سلامت یا پیشگیری
 
 Always err on the side of caution. If unsure, escalate to higher severity level.
 
@@ -142,6 +169,9 @@ Provide your assessment in a clear, structured format including:
         long_term_memory = context.get("long_term_memory", "") if context else ""
         memory_context = self.format_memory_context(long_term_memory)
 
+        # Detect language and get instruction
+        language_code, language_instruction = self.detect_and_format_language(message, context)
+
         # Build comprehensive prompt
         patient_context = ""
         if patient_profile:
@@ -161,7 +191,9 @@ Provide your assessment in a clear, structured format including:
                 if all_allergies:
                     patient_context += f"- Allergies: {', '.join(all_allergies)}\n"
 
-        assessment_prompt = f"""Perform triage assessment for the following patient complaint:
+        assessment_prompt = f"""{language_instruction}
+
+Perform triage assessment for the following patient complaint:
 
 {message}
 {patient_context}

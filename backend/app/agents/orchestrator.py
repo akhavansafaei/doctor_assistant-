@@ -14,9 +14,12 @@ class AgentState(TypedDict):
     patient_profile: Dict[str, Any]
     conversation_history: List[Dict[str, str]]
 
-    # Memory context (NEW)
+    # Memory context
     long_term_memory: Optional[str]  # Formatted memory from past conversations
     memory_summary: Optional[Dict[str, Any]]  # Memory statistics
+
+    # Language context (NEW)
+    language: Optional[str]  # Detected language code ("en" or "fa")
 
     # State management
     current_agent: str

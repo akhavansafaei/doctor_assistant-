@@ -7,6 +7,7 @@ from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain.schema import SystemMessage, HumanMessage, AIMessage
 from app.core.config import settings
 from app.rag import HybridRetriever
+from app.utils.language_detector import detect_language, get_language_instruction, LanguageCode
 
 
 class BaseAgent(ABC):
@@ -91,6 +92,29 @@ class BaseAgent(ABC):
             return ""
 
         return f"\n\n=== LONG-TERM MEMORY (Past Conversations) ===\n{long_term_memory}\n=== END OF LONG-TERM MEMORY ===\n"
+
+    def detect_and_format_language(self, user_message: str, context: Optional[Dict[str, Any]] = None) -> tuple[LanguageCode, str]:
+        """
+        Detect language from user message and format language instruction
+
+        Args:
+            user_message: User's input message
+            context: Optional context that may contain language override
+
+        Returns:
+            Tuple of (language_code, language_instruction)
+        """
+        # Check if language is already specified in context
+        if context and "language" in context:
+            language_code = context["language"]
+        else:
+            # Detect language from message
+            language_code = detect_language(user_message)
+
+        # Get language instruction for LLM
+        language_instruction = get_language_instruction(language_code)
+
+        return language_code, language_instruction
 
     @abstractmethod
     async def process(
