@@ -14,44 +14,45 @@ class DiagnosticAgent(BaseAgent):
     """
 
     def __init__(self):
-        system_prompt = """You are an expert medical diagnostic AI assistant trained in clinical reasoning and differential diagnosis.
+        system_prompt = """You are an expert fitness and body composition assessment AI assistant trained in exercise science and nutritional analysis.
 
 Your role is to:
-1. Analyze patient symptoms and medical history
-2. Generate a differential diagnosis with multiple possible conditions
-3. Rank conditions by likelihood based on available evidence
-4. Identify key distinguishing features
-5. Suggest additional questions or tests to narrow diagnosis
-6. Map conditions to ICD-10 codes when applicable
+1. Analyze user's fitness level, body composition, and physical condition
+2. Assess current performance capabilities and limitations
+3. Evaluate nutritional status and caloric needs
+4. Identify training imbalances, weaknesses, or areas for improvement
+5. Suggest assessments or measurements to better understand fitness status
+6. Provide evidence-based analysis using sports science principles
 
 CRITICAL GUIDELINES:
-- Always provide differential diagnosis (multiple possibilities), never a single diagnosis
-- Rank by likelihood based on prevalence, symptom match, and patient factors
-- Consider both common and serious conditions (don't anchor on common diagnoses)
-- Account for patient's age, gender, medical history, and medications
-- Use evidence-based medicine and clinical guidelines
-- Be transparent about uncertainty
-- Flag when symptoms suggest multiple organ systems or rare conditions
-- NEVER provide definitive diagnosis - always recommend professional evaluation
+- Provide comprehensive assessment considering multiple factors
+- Analyze body composition based on photos, measurements, or descriptions
+- Calculate caloric needs based on activity level, goals, and body composition
+- Consider user's experience level, current training, and goals
+- Use evidence-based exercise science and nutrition research
+- Be transparent about limitations of remote assessment
+- Recommend professional assessment (DEXA scan, VO2 max testing) when appropriate
+- Account for individual variation and genetic factors
 
-Clinical Reasoning Framework:
-1. Pattern Recognition: Match symptom patterns to known conditions
-2. Probabilistic Thinking: Consider prevalence and patient demographics
-3. Bayesian Reasoning: Update probabilities based on additional information
-4. Red Flag Identification: Look for serious conditions not to miss
-5. Parsimony vs Complexity: Consider both single unifying diagnosis and multiple conditions
+Assessment Framework:
+1. Body Composition Analysis: Estimate body fat percentage, muscle mass distribution
+2. Fitness Level Assessment: Cardiovascular fitness, strength level, flexibility
+3. Nutritional Analysis: Caloric needs (TDEE), macronutrient ratios, Persian diet integration
+4. Training Status: Recovery, overtraining signs, training age
+5. Goal Alignment: How current state aligns with stated goals
 
 Always structure your output clearly with:
-- Differential diagnoses (ranked)
-- Supporting evidence for each
-- Distinguishing features
-- Recommended next steps
-- Clarifying questions
+- Body composition assessment
+- Fitness level evaluation
+- Caloric and nutritional needs
+- Strengths and weaknesses
+- Specific recommendations for improvement
+- Clarifying questions or suggested assessments
 """
 
         super().__init__(
-            name="Diagnostic Agent",
-            description="Differential diagnosis and clinical reasoning",
+            name="Fitness Assessment Agent",
+            description="Fitness level and body composition assessment",
             system_prompt=system_prompt,
             use_rag=True
         )
@@ -62,71 +63,83 @@ Always structure your output clearly with:
         context: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """
-        Generate differential diagnosis
+        Generate fitness and body composition assessment
 
         Args:
-            input_data: Contains symptoms, patient profile, and any test results
+            input_data: Contains user query, fitness profile, and any measurements/photos
             context: Conversation history and triage assessment
 
         Returns:
-            Differential diagnosis with ranked conditions
+            Comprehensive fitness assessment with recommendations
         """
-        symptoms = input_data.get("symptoms", input_data.get("message", ""))
+        user_query = input_data.get("symptoms", input_data.get("message", ""))
         patient_profile = input_data.get("patient_profile", {})
-        test_results = input_data.get("test_results", {})
+        measurements = input_data.get("test_results", {})
 
-        # Build comprehensive clinical picture
-        clinical_query = self._build_clinical_query(
-            symptoms, patient_profile, test_results
+        # Build comprehensive fitness query
+        fitness_query = self._build_clinical_query(
+            user_query, patient_profile, measurements
         )
 
-        # Retrieve relevant medical literature and guidelines
+        # Retrieve relevant fitness and nutrition knowledge
         retrieved_docs = await self.retrieve_context(
-            query=clinical_query,
-            filters={"document_type": ["medical_literature", "clinical_guideline"]}
+            query=fitness_query,
+            filters={"document_type": ["fitness_science", "nutrition_guideline"]}
         )
 
-        medical_context = self.format_context(retrieved_docs)
+        knowledge_context = self.format_context(retrieved_docs)
 
-        # Build diagnostic prompt
-        diagnostic_prompt = f"""Perform differential diagnosis for the following clinical presentation:
+        # Build assessment prompt
+        diagnostic_prompt = f"""Perform comprehensive fitness assessment for the following:
 
-PRESENTING SYMPTOMS:
-{symptoms}
+USER QUERY/GOAL:
+{user_query}
 
-PATIENT INFORMATION:
+USER FITNESS PROFILE:
 {self._format_patient_info(patient_profile)}
 
-{medical_context}
+{knowledge_context}
 
-Provide differential diagnosis in the following structured format:
+Provide comprehensive fitness assessment in the following structured format:
 
-DIFFERENTIAL_DIAGNOSES:
-1. [Condition Name] (ICD-10: [code if known])
-   - Likelihood: [High/Moderate/Low]
-   - Supporting Evidence: [Key symptoms/findings that support this]
-   - Against: [What doesn't fit]
-   - Typical Presentation: [How this typically presents]
+BODY_COMPOSITION_ASSESSMENT:
+- Estimated Body Fat Percentage: [Estimate based on available info]
+- Muscle Mass Distribution: [Analysis of muscle development]
+- Body Type Classification: [Ectomorph/Mesomorph/Endomorph tendencies]
+- Visual Assessment Notes: [If photo provided, detailed analysis]
 
-2. [Next condition...]
+FITNESS_LEVEL_EVALUATION:
+- Cardiovascular Fitness: [Estimated level]
+- Strength Level: [Beginner/Intermediate/Advanced/Elite]
+- Flexibility & Mobility: [Assessment if mentioned]
+- Training Age: [Estimated based on experience]
+
+CALORIC_AND_NUTRITIONAL_NEEDS:
+- Estimated TDEE (Total Daily Energy Expenditure): [Calculation]
+- Caloric Goal for User's Objective: [Surplus/Deficit/Maintenance with amount]
+- Recommended Macronutrient Ratios: [Protein/Carbs/Fats in grams and percentages]
+- Persian Diet Integration: [How to meet needs with Persian cuisine]
+
+STRENGTHS_AND_WEAKNESSES:
+- Current Strengths: [What user is doing well]
+- Areas for Improvement: [Specific weaknesses or imbalances]
+- Training Gaps: [What's missing from current routine]
+
+RECOMMENDATIONS:
+1. [Specific recommendation for improvement]
+2. [Another recommendation]
    ...
 
-DISTINGUISHING_FEATURES:
-[What features would help differentiate between the top conditions]
-
-RECOMMENDED_WORKUP:
-[What additional questions, exams, or tests would help narrow the diagnosis]
-
 CLARIFYING_QUESTIONS:
-1. [Important question to ask patient]
+1. [Important question to better assess user]
 2. [Another question]
    ...
 
-RED_FLAGS:
-[Any serious conditions that must not be missed]
+SUGGESTED_ASSESSMENTS:
+[Measurements or tests that would provide better data - body measurements, photos, performance tests]
 
-CLINICAL_REASONING:
-[Your step-by-step reasoning process]
+ASSESSMENT_REASONING:
+[Your step-by-step analysis process]
 """
 
         # Get conversation history
@@ -185,7 +198,7 @@ CLINICAL_REASONING:
         return " ".join(query_parts)
 
     def _format_patient_info(self, patient_profile: Dict[str, Any]) -> str:
-        """Format patient information for prompt"""
+        """Format user fitness profile for prompt"""
         info_parts = []
 
         if patient_profile.get("age"):
@@ -194,58 +207,84 @@ CLINICAL_REASONING:
         if patient_profile.get("gender"):
             info_parts.append(f"- Gender: {patient_profile['gender']}")
 
-        if patient_profile.get("chronic_conditions"):
-            info_parts.append(
-                f"- Medical History: {', '.join(patient_profile['chronic_conditions'])}"
-            )
+        if patient_profile.get("height_cm") and patient_profile.get("weight_kg"):
+            height = patient_profile['height_cm']
+            weight = patient_profile['weight_kg']
+            bmi = weight / ((height / 100) ** 2)
+            info_parts.append(f"- Height: {height} cm, Weight: {weight} kg (BMI: {bmi:.1f})")
 
-        if patient_profile.get("current_medications"):
-            meds = [m.get('name', 'Unknown') for m in patient_profile.get('current_medications', [])]
-            info_parts.append(f"- Current Medications: {', '.join(meds)}")
+        if patient_profile.get("fitness_level"):
+            info_parts.append(f"- Current Fitness Level: {patient_profile['fitness_level']}")
 
-        if patient_profile.get("allergies"):
-            allergies = patient_profile['allergies']
-            all_allergies = []
-            for category, items in allergies.items():
-                if items:
-                    all_allergies.extend([f"{item} ({category})" for item in items])
-            if all_allergies:
-                info_parts.append(f"- Allergies: {', '.join(all_allergies)}")
+        if patient_profile.get("training_experience"):
+            info_parts.append(f"- Training Experience: {patient_profile['training_experience']}")
 
-        if patient_profile.get("smoking_status"):
-            info_parts.append(f"- Smoking: {patient_profile['smoking_status']}")
+        if patient_profile.get("fitness_goals"):
+            info_parts.append(f"- Fitness Goals: {', '.join(patient_profile['fitness_goals'])}")
 
-        return "\n".join(info_parts) if info_parts else "No additional patient information available"
+        if patient_profile.get("available_equipment"):
+            info_parts.append(f"- Available Equipment: {', '.join(patient_profile['available_equipment'])}")
+
+        if patient_profile.get("training_days_per_week"):
+            info_parts.append(f"- Training Days Per Week: {patient_profile['training_days_per_week']}")
+
+        if patient_profile.get("training_duration_minutes"):
+            info_parts.append(f"- Training Duration: {patient_profile['training_duration_minutes']} minutes per session")
+
+        if patient_profile.get("diet_preference"):
+            info_parts.append(f"- Diet Preference: {patient_profile['diet_preference']}")
+
+        if patient_profile.get("health_conditions"):
+            info_parts.append(f"- Health Conditions to Consider: {', '.join(patient_profile['health_conditions'])}")
+
+        if patient_profile.get("current_injuries"):
+            info_parts.append(f"- Current Injuries: {', '.join(patient_profile['current_injuries'])}")
+
+        if patient_profile.get("exercise_frequency"):
+            info_parts.append(f"- Current Exercise Frequency: {patient_profile['exercise_frequency']}")
+
+        return "\n".join(info_parts) if info_parts else "No fitness profile information available"
 
     def _parse_diagnostic_output(self, response: str) -> Dict[str, Any]:
-        """Parse the diagnostic output into structured format"""
+        """Parse the fitness assessment output into structured format"""
         import re
 
         result = {
-            "differential_diagnoses": [],
-            "distinguishing_features": "",
-            "recommended_workup": "",
+            "body_composition_assessment": "",
+            "fitness_level_evaluation": "",
+            "caloric_and_nutritional_needs": "",
+            "strengths_and_weaknesses": "",
+            "recommendations": [],
             "clarifying_questions": [],
-            "red_flags": "",
-            "clinical_reasoning": ""
+            "suggested_assessments": "",
+            "assessment_reasoning": ""
         }
 
-        # Extract differential diagnoses
-        dd_section = self._extract_section(response, "DIFFERENTIAL_DIAGNOSES")
-        if dd_section:
-            result["differential_diagnoses"] = self._parse_diagnoses(dd_section)
+        # Extract assessment sections
+        result["body_composition_assessment"] = self._extract_section(
+            response, "BODY_COMPOSITION_ASSESSMENT"
+        )
+        result["fitness_level_evaluation"] = self._extract_section(
+            response, "FITNESS_LEVEL_EVALUATION"
+        )
+        result["caloric_and_nutritional_needs"] = self._extract_section(
+            response, "CALORIC_AND_NUTRITIONAL_NEEDS"
+        )
+        result["strengths_and_weaknesses"] = self._extract_section(
+            response, "STRENGTHS_AND_WEAKNESSES"
+        )
+        result["suggested_assessments"] = self._extract_section(
+            response, "SUGGESTED_ASSESSMENTS"
+        )
+        result["assessment_reasoning"] = self._extract_section(
+            response, "ASSESSMENT_REASONING"
+        )
 
-        # Extract other sections
-        result["distinguishing_features"] = self._extract_section(
-            response, "DISTINGUISHING_FEATURES"
-        )
-        result["recommended_workup"] = self._extract_section(
-            response, "RECOMMENDED_WORKUP"
-        )
-        result["red_flags"] = self._extract_section(response, "RED_FLAGS")
-        result["clinical_reasoning"] = self._extract_section(
-            response, "CLINICAL_REASONING"
-        )
+        # Extract recommendations list
+        recommendations_section = self._extract_section(response, "RECOMMENDATIONS")
+        if recommendations_section:
+            recommendations = re.findall(r'^\d+\.\s*(.+)$', recommendations_section, re.MULTILINE)
+            result["recommendations"] = recommendations
 
         # Extract clarifying questions
         questions_section = self._extract_section(response, "CLARIFYING_QUESTIONS")

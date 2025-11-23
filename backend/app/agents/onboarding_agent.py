@@ -15,48 +15,50 @@ class OnboardingAgent(BaseAgent):
     """
 
     def __init__(self):
-        system_prompt = """You are a friendly medical assistant helping to collect a patient's health information for their profile.
+        system_prompt = """You are a friendly fitness assistant helping to collect a user's fitness profile information.
 
 Your role is to:
 1. Ask questions ONE AT A TIME in a conversational, friendly manner
 2. Extract and structure the information from their responses
-3. Move through the health profile questions naturally
+3. Move through the fitness profile questions naturally
 4. Be understanding if they don't know or skip questions
 5. Make the process feel like a natural conversation, not an interrogation
 
-Health Information to Collect (in order):
-1. Basic Info: Age, Gender, Height, Weight, Blood Type (if known)
-2. Chronic Conditions: Do they have any ongoing health conditions? (diabetes, hypertension, asthma, etc.)
-3. Allergies: Drug allergies, food allergies, environmental allergies
-4. Current Medications: What medications are they currently taking?
-5. Past Surgeries: Any previous surgeries or major medical procedures?
-6. Lifestyle: Smoking status, alcohol consumption, exercise frequency
-7. Emergency Contact: Name, phone, relationship (optional but recommended)
+Fitness Information to Collect (in order):
+1. Basic Info: Age, Gender, Height, Weight
+2. Fitness Goals: What do they want to achieve? (muscle gain, fat loss, strength, athletic performance, general fitness)
+3. Current Fitness Level: Beginner, Intermediate, Advanced
+4. Training Experience: How long have they been training?
+5. Available Equipment: Full gym, home gym with equipment, dumbbells only, bodyweight only?
+6. Training Schedule: How many days per week can they train? How much time per session?
+7. Current Injuries or Health Conditions: Any injuries or health issues to consider?
+8. Diet Preference: Do they prefer Persian cuisine? Any dietary restrictions or food allergies?
+9. Current Activity Level: How active are they currently?
 
 IMPORTANT GUIDELINES:
 - Ask ONE question at a time
 - Be warm and conversational
 - Accept "none", "no", "I don't know" as valid answers
 - Don't make them feel uncomfortable
-- Explain WHY you're asking (helps provide better medical advice)
+- Explain WHY you're asking (helps provide better fitness and nutrition guidance)
 - Allow them to skip questions they're not comfortable answering
 - Summarize what you've collected before finishing
 
 Example conversation flow:
-"Hi! To provide you with the most accurate health advice, I'd like to learn a bit about you. This will only take a minute and helps me give you personalized care. Is that okay?"
+"Hi! To create the perfect fitness and nutrition plan for you, I'd like to learn about your goals and current situation. This will only take a minute and helps me give you personalized guidance. Sound good?"
 
-"Great! Let's start simple - how old are you?"
+"Awesome! Let's start simple - how old are you?"
 
-"Thanks! And what's your biological gender? This helps with gender-specific health considerations."
+"Thanks! And what's your gender? This helps with things like calorie calculations and training recommendations."
 
-"Perfect! Do you happen to know your height and weight? This helps assess various health metrics."
+"Perfect! Do you know your height and weight? This helps me calculate your caloric needs and track progress."
 
 After collecting info, respond with a JSON object containing the extracted data.
 """
 
         super().__init__(
             name="Onboarding Agent",
-            description="Conversational health profile collection",
+            description="Conversational fitness profile collection",
             system_prompt=system_prompt,
             use_rag=False  # Don't need RAG for onboarding
         )
@@ -65,43 +67,58 @@ After collecting info, respond with a JSON object containing the extracted data.
         self.questions = [
             {
                 "field": "basic_info",
-                "question": "To provide you with personalized health advice, I'd like to know a bit about you. First, how old are you?",
+                "question": "To create the perfect fitness and nutrition plan for you, I'd like to know a bit about you. First, how old are you?",
                 "extract": ["age"]
             },
             {
                 "field": "basic_info",
-                "question": "Thanks! And what's your biological gender? This helps with gender-specific health considerations.",
+                "question": "Thanks! And what's your gender? This helps with calorie calculations and training recommendations.",
                 "extract": ["gender"]
             },
             {
                 "field": "basic_info",
-                "question": "Do you know your height and current weight? This helps assess various health metrics.",
+                "question": "Perfect! Do you know your height and current weight? This helps me calculate your caloric needs and track progress.",
                 "extract": ["height_cm", "weight_kg"]
             },
             {
-                "field": "chronic_conditions",
-                "question": "Do you have any ongoing health conditions or chronic illnesses? For example, diabetes, high blood pressure, asthma, etc. If none, just say 'none'.",
-                "extract": ["chronic_conditions"]
+                "field": "fitness_goals",
+                "question": "Great! Now, what are your main fitness goals? For example: muscle gain, fat loss, strength building, athletic performance, or general fitness. You can have multiple goals!",
+                "extract": ["fitness_goals"]
             },
             {
-                "field": "allergies",
-                "question": "Great! Now, do you have any allergies? This could be to medications, foods, or environmental things like pollen. Please list them or say 'none'.",
-                "extract": ["allergies"]
+                "field": "fitness_level",
+                "question": "How would you describe your current fitness level? Beginner, Intermediate, or Advanced?",
+                "extract": ["fitness_level"]
             },
             {
-                "field": "medications",
-                "question": "Are you currently taking any medications regularly? Please include prescription and over-the-counter medications, or say 'none'.",
-                "extract": ["current_medications"]
+                "field": "training_experience",
+                "question": "How long have you been training or working out? This helps me design an appropriate program for your experience level.",
+                "extract": ["training_experience"]
             },
             {
-                "field": "surgeries",
-                "question": "Have you had any surgeries or major medical procedures in the past? If yes, please briefly mention them.",
-                "extract": ["past_surgeries"]
+                "field": "equipment",
+                "question": "What equipment do you have access to? Full gym, home gym with equipment, dumbbells only, or just bodyweight?",
+                "extract": ["available_equipment"]
             },
             {
-                "field": "lifestyle",
-                "question": "A few lifestyle questions: Do you smoke? How often do you drink alcohol? And how frequently do you exercise?",
-                "extract": ["smoking_status", "alcohol_consumption", "exercise_frequency"]
+                "field": "schedule",
+                "question": "How many days per week can you train, and how much time do you have per session?",
+                "extract": ["training_days_per_week", "training_duration_minutes"]
+            },
+            {
+                "field": "health_and_injuries",
+                "question": "Do you have any current injuries or health conditions I should know about? This helps me keep your program safe and effective.",
+                "extract": ["current_injuries", "health_conditions"]
+            },
+            {
+                "field": "diet",
+                "question": "Do you prefer Persian cuisine for your meal plans? Also, do you have any dietary restrictions or food allergies?",
+                "extract": ["diet_preference", "dietary_restrictions", "food_allergies"]
+            },
+            {
+                "field": "current_activity",
+                "question": "Finally, how active are you currently? This helps me understand your starting point.",
+                "extract": ["exercise_frequency"]
             },
         ]
 
@@ -132,7 +149,7 @@ After collecting info, respond with a JSON object containing the extracted data.
         if current_index == 0 and not conversation_history:
             return {
                 "agent": self.name,
-                "next_question": "Hi! 👋 To provide you with the most accurate health advice, I'd like to learn a bit about you. This will only take a minute and helps me give you personalized care. Shall we begin?",
+                "next_question": "Hi! 💪 To create the perfect fitness and nutrition plan for you, I'd like to learn about your goals and current situation. This will only take a minute and helps me give you personalized guidance. Ready to get started?",
                 "onboarding_complete": False,
                 "current_question": 0,
                 "collected_data": collected_data
@@ -153,7 +170,7 @@ After collecting info, respond with a JSON object containing the extracted data.
                 "onboarding_complete": True,
                 "collected_data": collected_data,
                 "summary": self._create_summary(collected_data),
-                "completion_message": "Perfect! Thank you for sharing that information. I now have a good understanding of your health profile, which will help me provide more personalized and accurate advice. How can I help you today? 😊"
+                "completion_message": "Awesome! Thank you for sharing that information. I now have a complete understanding of your fitness profile and goals. I'm ready to help you with personalized workout plans, Persian diet recommendations, and fitness guidance. What would you like to work on first? 💪"
             }
 
         # Ask next question
@@ -183,7 +200,7 @@ After collecting info, respond with a JSON object containing the extracted data.
         Returns:
             Structured data dictionary
         """
-        extraction_prompt = f"""Extract the following health information from the user's response.
+        extraction_prompt = f"""Extract the following fitness information from the user's response.
 If information is not mentioned or user says "none"/"no", return null for that field.
 
 Response: "{response}"
@@ -192,14 +209,17 @@ Extract these fields: {', '.join(fields)}
 
 Return ONLY a JSON object with these exact field names. Examples:
 
-For age: {{"age": 35}}
+For age: {{"age": 28}}
 For gender: {{"gender": "male"}} or {{"gender": "female"}}
-For height/weight: {{"height_cm": 175, "weight_kg": 70}}
-For chronic conditions: {{"chronic_conditions": ["diabetes", "hypertension"]}} or {{"chronic_conditions": []}}
-For allergies: {{"allergies": {{"drug": ["penicillin"], "food": ["peanuts"], "environmental": []}}}}
-For medications: {{"current_medications": [{{"name": "Metformin", "dose": "500mg twice daily"}}]}}
-For surgeries: {{"past_surgeries": [{{"name": "Appendectomy", "date": "2015"}}]}}
-For lifestyle: {{"smoking_status": "never", "alcohol_consumption": "occasionally", "exercise_frequency": "3 times per week"}}
+For height/weight: {{"height_cm": 180, "weight_kg": 75}}
+For fitness goals: {{"fitness_goals": ["muscle gain", "strength building"]}} or {{"fitness_goals": ["fat loss"]}}
+For fitness level: {{"fitness_level": "intermediate"}} or {{"fitness_level": "beginner"}}
+For training experience: {{"training_experience": "2 years"}} or {{"training_experience": "6 months"}}
+For equipment: {{"available_equipment": ["full gym"]}} or {{"available_equipment": ["dumbbells", "resistance bands"]}}
+For schedule: {{"training_days_per_week": 4, "training_duration_minutes": 60}}
+For injuries/health: {{"current_injuries": ["knee pain"], "health_conditions": ["high blood pressure"]}} or {{"current_injuries": [], "health_conditions": []}}
+For diet: {{"diet_preference": "Persian cuisine", "dietary_restrictions": ["vegetarian"], "food_allergies": ["peanuts"]}}
+For activity: {{"exercise_frequency": "3-4 times per week"}}
 
 Return ONLY the JSON, no explanation."""
 
@@ -224,26 +244,26 @@ Return ONLY the JSON, no explanation."""
         if collected_data.get("age"):
             summary_parts.append(f"Age: {collected_data['age']}")
 
-        if collected_data.get("chronic_conditions"):
-            conditions = collected_data["chronic_conditions"]
-            if conditions:
-                summary_parts.append(f"Chronic conditions: {', '.join(conditions)}")
+        if collected_data.get("fitness_level"):
+            summary_parts.append(f"Level: {collected_data['fitness_level']}")
 
-        if collected_data.get("current_medications"):
-            meds = [m.get("name", "") for m in collected_data.get("current_medications", [])]
-            if meds:
-                summary_parts.append(f"Medications: {', '.join(meds)}")
+        if collected_data.get("fitness_goals"):
+            goals = collected_data["fitness_goals"]
+            if isinstance(goals, list) and goals:
+                summary_parts.append(f"Goals: {', '.join(goals)}")
 
-        if collected_data.get("allergies"):
-            allergies = collected_data["allergies"]
-            all_allergies = []
-            for category, items in allergies.items():
-                if items:
-                    all_allergies.extend(items)
-            if all_allergies:
-                summary_parts.append(f"Allergies: {', '.join(all_allergies)}")
+        if collected_data.get("training_days_per_week"):
+            summary_parts.append(f"Training: {collected_data['training_days_per_week']}x/week")
 
-        return " | ".join(summary_parts) if summary_parts else "Basic profile created"
+        if collected_data.get("diet_preference"):
+            summary_parts.append(f"Diet: {collected_data['diet_preference']}")
+
+        if collected_data.get("available_equipment"):
+            equipment = collected_data["available_equipment"]
+            if isinstance(equipment, list) and equipment:
+                summary_parts.append(f"Equipment: {', '.join(equipment)}")
+
+        return " | ".join(summary_parts) if summary_parts else "Basic fitness profile created"
 
 
 class ProfileCompletionChecker:

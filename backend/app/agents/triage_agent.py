@@ -14,70 +14,77 @@ class TriageAgent(BaseAgent):
 
     # Emergency keywords that trigger immediate alerts (English & Persian)
     EMERGENCY_KEYWORDS = [
-        # English
-        "chest pain", "difficulty breathing", "shortness of breath",
-        "severe bleeding", "heavy bleeding", "unconscious", "unresponsive",
-        "severe head injury", "can't breathe", "choking",
+        # English - Serious injuries and dangerous conditions
+        "chest pain during exercise", "severe chest pain", "heart attack symptoms",
+        "can't breathe", "difficulty breathing", "severe shortness of breath",
+        "unconscious", "passed out", "blacked out",
+        "severe head injury", "neck injury", "spinal injury",
+        "compound fracture", "bone through skin", "severe bleeding",
         "severe allergic reaction", "anaphylaxis",
-        "stroke symptoms", "slurred speech", "facial drooping",
-        "suicidal", "suicide", "want to die",
-        "severe abdominal pain", "coughing blood", "vomiting blood",
-        "seizure", "convulsion", "overdose", "poisoning",
+        "heat stroke", "severe dehydration", "hypothermia",
+        "rhabdomyolysis", "dark urine after workout", "muscle breakdown",
         # Persian/Farsi
-        "درد قفسه سینه", "درد سینه", "تنگی نفس", "نفس کشیدن سخت",
-        "خونریزی شدید", "بیهوش", "بی‌هوش", "هوشیاری ندارد",
-        "ضربه شدید سر", "نفس نمی‌کشم", "خفگی",
+        "درد قفسه سینه هنگام ورزش", "درد شدید قلب", "علائم حمله قلبی",
+        "نفس کشیدن سخت", "تنگی نفس شدید", "نمی‌توانم نفس بکشم",
+        "بیهوش", "بی‌هوش", "غش کردن",
+        "آسیب شدید سر", "آسیب گردن", "آسیب ستون فقرات",
+        "شکستگی باز", "استخوان از پوست زده", "خونریزی شدید",
         "واکنش آلرژیک شدید", "آنافیلاکسی",
-        "علائم سکته", "سکته مغزی", "گفتار نامفهوم", "افتادگی صورت",
-        "خودکشی", "می‌خواهم بمیرم", "درد شدید شکم",
-        "سرفه خون", "استفراغ خون", "تشنج", "مسمومیت"
+        "گرمازدگی", "کم‌آبی شدید", "سرمازدگی",
+        "رابدومیولیز", "ادرار تیره بعد از ورزش", "تجزیه عضلانی"
     ]
 
     # Urgent keywords (English & Persian)
     URGENT_KEYWORDS = [
-        # English
-        "high fever", "persistent pain", "severe pain",
-        "broken bone", "fracture", "deep cut",
-        "severe burn", "infection", "rapid heartbeat",
-        "dizziness", "fainting", "confusion",
+        # English - Injuries and concerning symptoms
+        "severe joint pain", "joint swelling", "can't move joint",
+        "fracture", "broken bone", "severe sprain",
+        "sharp pain", "stabbing pain", "extreme pain",
+        "severe muscle strain", "torn muscle", "pulled muscle",
+        "rapid heartbeat during rest", "irregular heartbeat", "palpitations",
+        "dizziness", "severe nausea", "vomiting",
+        "severe cramps", "persistent pain", "chronic pain worsening",
         # Persian/Farsi
-        "تب شدید", "تب بالا", "درد مداوم", "درد شدید",
-        "شکستگی استخوان", "شکستگی", "بریدگی عمیق",
-        "سوختگی شدید", "عفونت", "تپش قلب", "ضربان سریع قلب",
-        "سرگیجه", "غش", "از هوش رفتن", "گیجی"
+        "درد شدید مفصل", "ورم مفصل", "عدم حرکت مفصل",
+        "شکستگی", "شکستگی استخوان", "پیچ خوردگی شدید",
+        "درد تیز", "درد چاقو زدن", "درد شدید",
+        "کشیدگی شدید عضله", "پارگی عضله", "کشیدگی عضلانی",
+        "ضربان سریع قلب در حالت استراحت", "ضربان نامنظم قلب", "تپش قلب",
+        "سرگیجه", "حالت تهوع شدید", "استفراغ",
+        "گرفتگی شدید عضلات", "درد مداوم", "بدتر شدن درد مزمن"
     ]
 
     def __init__(self):
-        system_prompt = """You are a medical triage specialist AI assistant. Your role is to:
+        system_prompt = """You are a fitness and wellness triage specialist AI assistant. Your role is to:
 
-1. Assess the severity and urgency of the patient's condition
-2. Identify any emergency or life-threatening symptoms
-3. Determine the appropriate level of care needed
-4. Route to the appropriate medical specialist
+1. Assess the severity and urgency of fitness-related concerns or injuries
+2. Identify any serious injuries or dangerous conditions requiring immediate medical attention
+3. Determine the appropriate level of guidance needed
+4. Route to appropriate fitness specialist or medical professional
 
-CRITICAL: You are NOT providing medical diagnosis. You are performing initial triage assessment.
+CRITICAL: You are NOT diagnosing injuries. You are performing initial assessment of fitness concerns.
 
-When assessing a patient, consider:
-- Severity of symptoms (mild, moderate, severe)
-- Duration and onset of symptoms
-- Associated symptoms
-- Patient's medical history and current medications
-- Age and general health status
+When assessing a user's concern, consider:
+- Severity of pain or injury (mild discomfort, moderate pain, severe injury)
+- Duration and onset (acute injury, chronic issue, gradual development)
+- Impact on daily activities and training ability
+- User's fitness level, training history, and goals
+- Age and physical condition
 
 Severity Levels:
-- EMERGENCY: Life-threatening, requires immediate medical attention (911/ER)
-- URGENT: Serious condition, needs medical care within hours
-- MODERATE: Should see doctor within 1-2 days
-- MINOR: Can manage with self-care or routine appointment
-- INFO: General health information or prevention
+- EMERGENCY: Serious injury or dangerous condition, requires immediate medical attention (ER/Doctor)
+- URGENT: Significant injury or concern, needs professional evaluation within 24-48 hours
+- MODERATE: Should rest and monitor, may need physiotherapist or sports medicine consult
+- MINOR: Can manage with rest, ice, modifications to training
+- INFO: General fitness/nutrition information or guidance
 
-Always err on the side of caution. If unsure, escalate to higher severity level.
+Always err on the side of caution. If unsure about an injury, recommend professional evaluation.
 
 Provide your assessment in a clear, structured format including:
 1. Severity level
 2. Reasoning
 3. Immediate recommendations
-4. Suggested specialist (if applicable)
+4. Suggested specialist (sports medicine, physiotherapist, nutritionist, etc.)
 """
 
         super().__init__(
@@ -138,8 +145,8 @@ Provide your assessment in a clear, structured format including:
                 "severity": "EMERGENCY",
                 "emergency_detected": True,
                 "detected_keywords": emergency_keywords,
-                "immediate_action": "CALL 911 OR GO TO EMERGENCY ROOM IMMEDIATELY",
-                "reasoning": f"Emergency keywords detected: {', '.join(emergency_keywords)}. This requires immediate medical attention.",
+                "immediate_action": "SEEK IMMEDIATE MEDICAL ATTENTION - CALL 911 OR GO TO EMERGENCY ROOM",
+                "reasoning": f"Serious injury or dangerous condition detected: {', '.join(emergency_keywords)}. This requires immediate medical evaluation, not fitness guidance.",
                 "route_to": "emergency_services",
                 "confidence": 0.95
             }
@@ -161,39 +168,37 @@ Provide your assessment in a clear, structured format including:
         language_code, language_instruction = self.detect_and_format_language(message, context)
 
         # Build comprehensive prompt
-        patient_context = ""
+        user_context = ""
         if patient_profile:
-            patient_context = f"\nPatient Information:\n"
+            user_context = f"\nUser Profile:\n"
             if patient_profile.get("age"):
-                patient_context += f"- Age: {patient_profile['age']}\n"
-            if patient_profile.get("chronic_conditions"):
-                patient_context += f"- Chronic Conditions: {', '.join(patient_profile['chronic_conditions'])}\n"
-            if patient_profile.get("current_medications"):
-                meds = [m.get('name', 'Unknown') for m in patient_profile['current_medications']]
-                patient_context += f"- Current Medications: {', '.join(meds)}\n"
-            if patient_profile.get("allergies"):
-                allergies = patient_profile['allergies']
-                all_allergies = []
-                for category, items in allergies.items():
-                    all_allergies.extend(items)
-                if all_allergies:
-                    patient_context += f"- Allergies: {', '.join(all_allergies)}\n"
+                user_context += f"- Age: {patient_profile['age']}\n"
+            if patient_profile.get("fitness_level"):
+                user_context += f"- Fitness Level: {patient_profile['fitness_level']}\n"
+            if patient_profile.get("fitness_goals"):
+                user_context += f"- Fitness Goals: {', '.join(patient_profile['fitness_goals'])}\n"
+            if patient_profile.get("training_experience"):
+                user_context += f"- Training Experience: {patient_profile['training_experience']}\n"
+            if patient_profile.get("current_injuries"):
+                user_context += f"- Current Injuries: {', '.join(patient_profile['current_injuries'])}\n"
+            if patient_profile.get("health_conditions"):
+                user_context += f"- Health Conditions: {', '.join(patient_profile['health_conditions'])}\n"
 
-        assessment_prompt = f"""Perform triage assessment for the following patient complaint:
+        assessment_prompt = f"""Perform triage assessment for the following fitness/wellness concern:
 
 {message}
-{patient_context}
+{user_context}
 {memory_context}
 {medical_context}
 
 Provide your assessment in the following format:
 
 SEVERITY: [EMERGENCY/URGENT/MODERATE/MINOR/INFO]
-REASONING: [Your clinical reasoning for the severity assessment]
-IMMEDIATE_RECOMMENDATIONS: [What the patient should do immediately]
-SPECIALIST_REFERRAL: [Type of doctor they should see, if applicable]
-TIMEFRAME: [How quickly they need to be seen]
-RED_FLAGS: [Any warning signs to watch for]
+REASONING: [Your reasoning for the severity assessment]
+IMMEDIATE_RECOMMENDATIONS: [What the user should do immediately]
+SPECIALIST_REFERRAL: [Type of specialist they should see - sports medicine doctor, physiotherapist, nutritionist, etc.]
+TIMEFRAME: [How quickly they need professional evaluation]
+RED_FLAGS: [Any warning signs to watch for that require immediate medical attention]
 {language_instruction}"""
 
         # Get conversation history
@@ -254,7 +259,7 @@ RED_FLAGS: [Any warning signs to watch for]
         if severity == "EMERGENCY":
             return "emergency_services"
         elif severity == "INFO":
-            return "health_education_agent"
+            return "fitness_education_agent"
         else:
-            # Route to diagnostic agent for further assessment
+            # Route to fitness assessment agent for further evaluation
             return "diagnostic_agent"

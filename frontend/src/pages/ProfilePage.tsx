@@ -13,6 +13,21 @@ export default function ProfilePage() {
     height_cm: undefined,
     weight_kg: undefined,
     blood_type: '',
+    // Fitness-specific fields
+    fitness_level: '',
+    training_experience: '',
+    fitness_goals: [],
+    available_equipment: [],
+    training_days_per_week: undefined,
+    training_duration_minutes: undefined,
+    current_injuries: [],
+    health_conditions: [],
+    diet_preference: '',
+    dietary_restrictions: [],
+    food_allergies: [],
+    body_fat_percentage: undefined,
+    body_measurements: {},
+    // Legacy fields
     chronic_conditions: [],
     allergies: {
       drug: [],

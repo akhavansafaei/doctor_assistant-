@@ -19,6 +19,33 @@ export interface HealthProfile {
   height_cm?: number;
   weight_kg?: number;
   blood_type?: string;
+
+  // Fitness-specific fields
+  fitness_level?: string; // beginner, intermediate, advanced
+  training_experience?: string; // e.g., "2 years", "6 months"
+  fitness_goals?: string[]; // muscle gain, fat loss, strength, athletic performance
+
+  available_equipment?: string[]; // full gym, dumbbells, bodyweight, etc.
+  training_days_per_week?: number;
+  training_duration_minutes?: number;
+
+  // Health and injury tracking
+  current_injuries?: string[];
+  health_conditions?: string[];
+
+  // Nutrition preferences
+  diet_preference?: string; // Persian cuisine, flexible, etc.
+  dietary_restrictions?: string[]; // vegetarian, vegan, etc.
+  food_allergies?: string[];
+
+  // Lifestyle
+  exercise_frequency?: string;
+
+  // Body composition tracking
+  body_fat_percentage?: number;
+  body_measurements?: Record<string, number>; // chest, waist, hips, arms, etc.
+
+  // Legacy medical fields (kept for backward compatibility)
   chronic_conditions?: string[];
   allergies?: {
     drug?: string[];
@@ -30,8 +57,8 @@ export interface HealthProfile {
   family_history?: Record<string, string[]>;
   smoking_status?: string;
   alcohol_consumption?: string;
-  exercise_frequency?: string;
   diet_type?: string;
+
   emergency_contact?: {
     name?: string;
     phone?: string;

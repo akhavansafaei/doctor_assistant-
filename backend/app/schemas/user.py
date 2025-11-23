@@ -53,21 +53,35 @@ class HealthProfileBase(BaseModel):
 
 
 class HealthProfileCreate(HealthProfileBase):
-    """Health profile creation"""
-    chronic_conditions: Optional[List[str]] = []
-    allergies: Optional[Dict[str, List[str]]] = {
-        "drug": [],
-        "food": [],
-        "environmental": []
-    }
-    current_medications: Optional[List[Dict[str, Any]]] = []
-    past_surgeries: Optional[List[Dict[str, Any]]] = []
-    family_history: Optional[Dict[str, List[str]]] = {}
+    """Fitness profile creation"""
+    # Fitness-specific fields
+    fitness_level: Optional[str] = None  # beginner, intermediate, advanced
+    training_experience: Optional[str] = None  # e.g., "2 years", "6 months"
+    fitness_goals: Optional[List[str]] = []  # muscle gain, fat loss, strength, athletic performance
 
-    smoking_status: Optional[str] = None
-    alcohol_consumption: Optional[str] = None
+    available_equipment: Optional[List[str]] = []  # full gym, dumbbells, bodyweight, etc.
+    training_days_per_week: Optional[int] = None
+    training_duration_minutes: Optional[int] = None
+
+    # Health and injury tracking
+    current_injuries: Optional[List[str]] = []
+    health_conditions: Optional[List[str]] = []
+
+    # Nutrition preferences
+    diet_preference: Optional[str] = None  # Persian cuisine, flexible, etc.
+    dietary_restrictions: Optional[List[str]] = []  # vegetarian, vegan, etc.
+    food_allergies: Optional[List[str]] = []
+
+    # Lifestyle
     exercise_frequency: Optional[str] = None
-    diet_type: Optional[str] = None
+
+    # Body composition tracking
+    body_fat_percentage: Optional[float] = None
+    body_measurements: Optional[Dict[str, float]] = {}  # chest, waist, hips, arms, etc.
+
+    # Legacy medical fields (optional, kept for health conditions)
+    chronic_conditions: Optional[List[str]] = []  # deprecated, use health_conditions
+    current_medications: Optional[List[Dict[str, Any]]] = []
 
     emergency_contact_name: Optional[str] = None
     emergency_contact_phone: Optional[str] = None
@@ -75,28 +89,48 @@ class HealthProfileCreate(HealthProfileBase):
 
 
 class HealthProfileUpdate(HealthProfileBase):
-    """Health profile update (partial)"""
+    """Fitness profile update (partial)"""
+    fitness_level: Optional[str] = None
+    training_experience: Optional[str] = None
+    fitness_goals: Optional[List[str]] = None
+    available_equipment: Optional[List[str]] = None
+    training_days_per_week: Optional[int] = None
+    training_duration_minutes: Optional[int] = None
+    current_injuries: Optional[List[str]] = None
+    health_conditions: Optional[List[str]] = None
+    diet_preference: Optional[str] = None
+    dietary_restrictions: Optional[List[str]] = None
+    food_allergies: Optional[List[str]] = None
+    body_fat_percentage: Optional[float] = None
+    body_measurements: Optional[Dict[str, float]] = None
     chronic_conditions: Optional[List[str]] = None
-    allergies: Optional[Dict[str, List[str]]] = None
     current_medications: Optional[List[Dict[str, Any]]] = None
-    past_surgeries: Optional[List[Dict[str, Any]]] = None
-    family_history: Optional[Dict[str, List[str]]] = None
 
 
 class HealthProfileResponse(HealthProfileBase):
-    """Health profile response"""
+    """Fitness profile response"""
     id: int
     user_id: int
-    chronic_conditions: Optional[List[str]] = None
-    allergies: Optional[Dict[str, List[str]]] = None
-    current_medications: Optional[List[Dict[str, Any]]] = None
-    past_surgeries: Optional[List[Dict[str, Any]]] = None
-    family_history: Optional[Dict[str, List[str]]] = None
 
-    smoking_status: Optional[str] = None
-    alcohol_consumption: Optional[str] = None
+    # Fitness fields
+    fitness_level: Optional[str] = None
+    training_experience: Optional[str] = None
+    fitness_goals: Optional[List[str]] = None
+    available_equipment: Optional[List[str]] = None
+    training_days_per_week: Optional[int] = None
+    training_duration_minutes: Optional[int] = None
+    current_injuries: Optional[List[str]] = None
+    health_conditions: Optional[List[str]] = None
+    diet_preference: Optional[str] = None
+    dietary_restrictions: Optional[List[str]] = None
+    food_allergies: Optional[List[str]] = None
     exercise_frequency: Optional[str] = None
-    diet_type: Optional[str] = None
+    body_fat_percentage: Optional[float] = None
+    body_measurements: Optional[Dict[str, float]] = None
+
+    # Legacy medical fields
+    chronic_conditions: Optional[List[str]] = None
+    current_medications: Optional[List[Dict[str, Any]]] = None
 
     created_at: datetime
     updated_at: datetime

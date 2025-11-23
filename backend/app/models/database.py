@@ -56,7 +56,7 @@ class User(Base):
 
 
 class HealthProfile(Base):
-    """Patient health profile"""
+    """User fitness profile"""
     __tablename__ = "health_profiles"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -67,18 +67,40 @@ class HealthProfile(Base):
     weight_kg = Column(Float)
     blood_type = Column(String(5))
 
-    # Medical information
-    chronic_conditions = Column(JSON)  # List of chronic conditions
-    allergies = Column(JSON)  # List of allergies (drug, food, environmental)
-    current_medications = Column(JSON)  # List of current medications
-    past_surgeries = Column(JSON)  # List of past surgeries with dates
-    family_history = Column(JSON)  # Family medical history
+    # Fitness-specific fields
+    fitness_level = Column(String(50))  # beginner, intermediate, advanced
+    training_experience = Column(String(100))  # e.g., "2 years", "6 months"
+    fitness_goals = Column(JSON)  # List: muscle gain, fat loss, strength, etc.
+
+    available_equipment = Column(JSON)  # List: full gym, dumbbells, bodyweight, etc.
+    training_days_per_week = Column(Integer)
+    training_duration_minutes = Column(Integer)
+
+    # Health and injury tracking
+    current_injuries = Column(JSON)  # List of current injuries
+    health_conditions = Column(JSON)  # List of health conditions to consider
+
+    # Nutrition preferences
+    diet_preference = Column(String(100))  # Persian cuisine, flexible, etc.
+    dietary_restrictions = Column(JSON)  # List: vegetarian, vegan, etc.
+    food_allergies = Column(JSON)  # List of food allergies
 
     # Lifestyle
-    smoking_status = Column(String(50))
-    alcohol_consumption = Column(String(50))
     exercise_frequency = Column(String(50))
-    diet_type = Column(String(50))
+
+    # Body composition tracking
+    body_fat_percentage = Column(Float)
+    body_measurements = Column(JSON)  # Dict: chest, waist, hips, arms, etc.
+
+    # Legacy medical fields (kept for backward compatibility)
+    chronic_conditions = Column(JSON)  # Deprecated, use health_conditions
+    allergies = Column(JSON)  # Legacy field
+    current_medications = Column(JSON)  # List of current medications
+    past_surgeries = Column(JSON)  # Legacy field
+    family_history = Column(JSON)  # Legacy field
+    smoking_status = Column(String(50))  # Legacy field
+    alcohol_consumption = Column(String(50))  # Legacy field
+    diet_type = Column(String(50))  # Legacy field
 
     # Emergency contact
     emergency_contact_name = Column(String(255))
