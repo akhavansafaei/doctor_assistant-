@@ -116,6 +116,9 @@ def get_language_instruction(language_code: LanguageCode) -> str:
     """
     Get instruction for LLM to respond in detected language
 
+    Note: Internal prompts remain in English for better LLM performance.
+    Only the final output to the user should be in the detected language.
+
     Args:
         language_code: Detected language code
 
@@ -123,20 +126,9 @@ def get_language_instruction(language_code: LanguageCode) -> str:
         Instruction string for LLM prompt
     """
     if language_code == "fa":
-        return """
-IMPORTANT - LANGUAGE INSTRUCTION:
-The user is writing in Persian/Farsi. You MUST respond in Persian/Farsi (فارسی).
-Use proper Persian grammar, vocabulary, and cultural context.
-Maintain professional medical terminology in Persian.
-
-زبان پاسخ: شما باید به زبان فارسی پاسخ دهید.
-"""
+        return "\n\nIMPORTANT: Respond to the user in Persian/Farsi (فارسی). Use proper Persian grammar and professional medical terminology.\n"
     else:
-        return """
-IMPORTANT - LANGUAGE INSTRUCTION:
-The user is writing in English. You MUST respond in English.
-Use clear, professional medical English.
-"""
+        return "\n\nIMPORTANT: Respond to the user in English. Use clear, professional medical language.\n"
 
 
 def format_bilingual_disclaimer() -> dict:

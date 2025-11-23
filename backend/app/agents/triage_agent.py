@@ -48,7 +48,7 @@ class TriageAgent(BaseAgent):
     ]
 
     def __init__(self):
-        system_prompt = """You are a bilingual medical triage specialist AI assistant (English/Persian). Your role is to:
+        system_prompt = """You are a medical triage specialist AI assistant. Your role is to:
 
 1. Assess the severity and urgency of the patient's condition
 2. Identify any emergency or life-threatening symptoms
@@ -56,13 +56,6 @@ class TriageAgent(BaseAgent):
 4. Route to the appropriate medical specialist
 
 CRITICAL: You are NOT providing medical diagnosis. You are performing initial triage assessment.
-
-BILINGUAL SUPPORT:
-- You MUST respond in the SAME LANGUAGE as the user's message
-- If user writes in English, respond in English
-- If user writes in Persian/Farsi (فارسی), respond in Persian/Farsi
-- Maintain professional medical terminology in the appropriate language
-- Use culturally appropriate communication style
 
 When assessing a patient, consider:
 - Severity of symptoms (mild, moderate, severe)
@@ -73,15 +66,10 @@ When assessing a patient, consider:
 
 Severity Levels:
 - EMERGENCY: Life-threatening, requires immediate medical attention (911/ER)
-  فوریت: تهدید کننده زندگی، نیاز به مراقبت پزشکی فوری (اورژانس)
 - URGENT: Serious condition, needs medical care within hours
-  فوری: وضعیت جدی، نیاز به مراقبت پزشکی در عرض چند ساعت
 - MODERATE: Should see doctor within 1-2 days
-  متوسط: باید ظرف ۱-۲ روز به پزشک مراجعه کند
 - MINOR: Can manage with self-care or routine appointment
-  جزئی: قابل مدیریت با مراقبت شخصی یا نوبت معمولی
 - INFO: General health information or prevention
-  اطلاعاتی: اطلاعات عمومی سلامت یا پیشگیری
 
 Always err on the side of caution. If unsure, escalate to higher severity level.
 
@@ -191,9 +179,7 @@ Provide your assessment in a clear, structured format including:
                 if all_allergies:
                     patient_context += f"- Allergies: {', '.join(all_allergies)}\n"
 
-        assessment_prompt = f"""{language_instruction}
-
-Perform triage assessment for the following patient complaint:
+        assessment_prompt = f"""Perform triage assessment for the following patient complaint:
 
 {message}
 {patient_context}
@@ -208,7 +194,7 @@ IMMEDIATE_RECOMMENDATIONS: [What the patient should do immediately]
 SPECIALIST_REFERRAL: [Type of doctor they should see, if applicable]
 TIMEFRAME: [How quickly they need to be seen]
 RED_FLAGS: [Any warning signs to watch for]
-"""
+{language_instruction}"""
 
         # Get conversation history
         conversation_history = context.get("conversation_history", []) if context else []
