@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/stores/authStore';
 import { HealthProfile } from '@/types';
 import toast from 'react-hot-toast';
-import { User, Heart, Pill, AlertCircle, Activity, Users } from 'lucide-react';
+import { User, Dumbbell, Target, Calendar, Utensils, AlertCircle } from 'lucide-react';
 
 export default function ProfilePage() {
   const { healthProfile, updateHealthProfile, user } = useAuthStore();
@@ -25,20 +25,9 @@ export default function ProfilePage() {
     diet_preference: '',
     dietary_restrictions: [],
     food_allergies: [],
+    exercise_frequency: '',
     body_fat_percentage: undefined,
     body_measurements: {},
-    // Legacy fields
-    chronic_conditions: [],
-    allergies: {
-      drug: [],
-      food: [],
-      environmental: []
-    },
-    current_medications: [],
-    past_surgeries: [],
-    smoking_status: '',
-    alcohol_consumption: '',
-    exercise_frequency: '',
     emergency_contact: {
       name: '',
       relationship: '',
@@ -46,13 +35,13 @@ export default function ProfilePage() {
     }
   });
 
-  // Tag inputs state
-  const [chronicConditionInput, setChronicConditionInput] = useState('');
-  const [drugAllergyInput, setDrugAllergyInput] = useState('');
+  // Tag inputs state for fitness
+  const [fitnessGoalInput, setFitnessGoalInput] = useState('');
+  const [equipmentInput, setEquipmentInput] = useState('');
+  const [injuryInput, setInjuryInput] = useState('');
+  const [healthConditionInput, setHealthConditionInput] = useState('');
+  const [dietaryRestrictionInput, setDietaryRestrictionInput] = useState('');
   const [foodAllergyInput, setFoodAllergyInput] = useState('');
-  const [environmentalAllergyInput, setEnvironmentalAllergyInput] = useState('');
-  const [medicationInput, setMedicationInput] = useState({ name: '', dose: '' });
-  const [surgeryInput, setSurgeryInput] = useState({ name: '', year: '' });
 
   useEffect(() => {
     if (healthProfile) {
@@ -66,7 +55,7 @@ export default function ProfilePage() {
 
     try {
       await updateHealthProfile(formData);
-      toast.success('Health profile updated successfully!');
+      toast.success('Fitness profile updated successfully!');
     } catch (error) {
       toast.error('Failed to update profile');
     } finally {
@@ -74,82 +63,111 @@ export default function ProfilePage() {
     }
   };
 
-  const addChronicCondition = () => {
-    if (chronicConditionInput.trim()) {
+  // Fitness Goals handlers
+  const addFitnessGoal = () => {
+    if (fitnessGoalInput.trim()) {
       setFormData({
         ...formData,
-        chronic_conditions: [...(formData.chronic_conditions || []), chronicConditionInput.trim()]
+        fitness_goals: [...(formData.fitness_goals || []), fitnessGoalInput.trim()]
       });
-      setChronicConditionInput('');
+      setFitnessGoalInput('');
     }
   };
 
-  const removeChronicCondition = (index: number) => {
+  const removeFitnessGoal = (index: number) => {
     setFormData({
       ...formData,
-      chronic_conditions: formData.chronic_conditions?.filter((_, i) => i !== index)
+      fitness_goals: formData.fitness_goals?.filter((_, i) => i !== index)
     });
   };
 
-  const addAllergy = (type: 'drug' | 'food' | 'environmental', value: string) => {
-    if (value.trim()) {
+  // Equipment handlers
+  const addEquipment = () => {
+    if (equipmentInput.trim()) {
       setFormData({
         ...formData,
-        allergies: {
-          ...formData.allergies,
-          [type]: [...(formData.allergies?.[type] || []), value.trim()]
-        }
+        available_equipment: [...(formData.available_equipment || []), equipmentInput.trim()]
       });
+      setEquipmentInput('');
     }
   };
 
-  const removeAllergy = (type: 'drug' | 'food' | 'environmental', index: number) => {
+  const removeEquipment = (index: number) => {
     setFormData({
       ...formData,
-      allergies: {
-        ...formData.allergies,
-        [type]: formData.allergies?.[type]?.filter((_, i) => i !== index) || []
-      }
+      available_equipment: formData.available_equipment?.filter((_, i) => i !== index)
     });
   };
 
-  const addMedication = () => {
-    if (medicationInput.name.trim()) {
+  // Injury handlers
+  const addInjury = () => {
+    if (injuryInput.trim()) {
       setFormData({
         ...formData,
-        current_medications: [
-          ...(formData.current_medications || []),
-          { name: medicationInput.name.trim(), dose: medicationInput.dose.trim() }
-        ]
+        current_injuries: [...(formData.current_injuries || []), injuryInput.trim()]
       });
-      setMedicationInput({ name: '', dose: '' });
+      setInjuryInput('');
     }
   };
 
-  const removeMedication = (index: number) => {
+  const removeInjury = (index: number) => {
     setFormData({
       ...formData,
-      current_medications: formData.current_medications?.filter((_, i) => i !== index)
+      current_injuries: formData.current_injuries?.filter((_, i) => i !== index)
     });
   };
 
-  const addSurgery = () => {
-    if (surgeryInput.name.trim()) {
+  // Health Condition handlers
+  const addHealthCondition = () => {
+    if (healthConditionInput.trim()) {
       setFormData({
         ...formData,
-        past_surgeries: [
-          ...(formData.past_surgeries || []),
-          { name: surgeryInput.name.trim(), year: surgeryInput.year }
-        ]
+        health_conditions: [...(formData.health_conditions || []), healthConditionInput.trim()]
       });
-      setSurgeryInput({ name: '', year: '' });
+      setHealthConditionInput('');
     }
   };
 
-  const removeSurgery = (index: number) => {
+  const removeHealthCondition = (index: number) => {
     setFormData({
       ...formData,
-      past_surgeries: formData.past_surgeries?.filter((_, i) => i !== index)
+      health_conditions: formData.health_conditions?.filter((_, i) => i !== index)
+    });
+  };
+
+  // Dietary Restriction handlers
+  const addDietaryRestriction = () => {
+    if (dietaryRestrictionInput.trim()) {
+      setFormData({
+        ...formData,
+        dietary_restrictions: [...(formData.dietary_restrictions || []), dietaryRestrictionInput.trim()]
+      });
+      setDietaryRestrictionInput('');
+    }
+  };
+
+  const removeDietaryRestriction = (index: number) => {
+    setFormData({
+      ...formData,
+      dietary_restrictions: formData.dietary_restrictions?.filter((_, i) => i !== index)
+    });
+  };
+
+  // Food Allergy handlers
+  const addFoodAllergy = () => {
+    if (foodAllergyInput.trim()) {
+      setFormData({
+        ...formData,
+        food_allergies: [...(formData.food_allergies || []), foodAllergyInput.trim()]
+      });
+      setFoodAllergyInput('');
+    }
+  };
+
+  const removeFoodAllergy = (index: number) => {
+    setFormData({
+      ...formData,
+      food_allergies: formData.food_allergies?.filter((_, i) => i !== index)
     });
   };
 
@@ -168,9 +186,9 @@ export default function ProfilePage() {
       {/* Header */}
       <div className="bg-white border-b">
         <div className="max-w-5xl mx-auto px-6 py-6">
-          <h1 className="text-3xl font-bold text-gray-900">Health Profile</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Fitness Profile</h1>
           <p className="text-gray-600 mt-2">
-            Keep your health information up to date for personalized medical advice
+            Keep your fitness information up to date for personalized workout plans and nutrition guidance
           </p>
         </div>
       </div>
@@ -186,7 +204,7 @@ export default function ProfilePage() {
               </div>
               <div>
                 <h2 className="text-xl font-semibold">Basic Information</h2>
-                <p className="text-sm text-gray-600">Your fundamental health metrics</p>
+                <p className="text-sm text-gray-600">Your fundamental physical metrics</p>
               </div>
             </div>
 
@@ -200,7 +218,7 @@ export default function ProfilePage() {
                   value={formData.age || ''}
                   onChange={(e) => setFormData({ ...formData, age: parseInt(e.target.value) })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="e.g., 35"
+                  placeholder="e.g., 28"
                   min="0"
                   max="120"
                   required
@@ -234,7 +252,7 @@ export default function ProfilePage() {
                   value={formData.height_cm || ''}
                   onChange={(e) => setFormData({ ...formData, height_cm: parseFloat(e.target.value) })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="e.g., 175"
+                  placeholder="e.g., 180"
                   min="50"
                   max="250"
                   step="0.1"
@@ -250,94 +268,319 @@ export default function ProfilePage() {
                   value={formData.weight_kg || ''}
                   onChange={(e) => setFormData({ ...formData, weight_kg: parseFloat(e.target.value) })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="e.g., 70"
+                  placeholder="e.g., 75"
                   min="20"
                   max="300"
                   step="0.1"
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Blood Type
-                </label>
-                <select
-                  value={formData.blood_type || ''}
-                  onChange={(e) => setFormData({ ...formData, blood_type: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                >
-                  <option value="">Select blood type</option>
-                  <option value="A+">A+</option>
-                  <option value="A-">A-</option>
-                  <option value="B+">B+</option>
-                  <option value="B-">B-</option>
-                  <option value="AB+">AB+</option>
-                  <option value="AB-">AB-</option>
-                  <option value="O+">O+</option>
-                  <option value="O-">O-</option>
-                </select>
-              </div>
-
               {bmi && (
-                <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                  <div className="text-sm font-medium text-blue-900">BMI</div>
-                  <div className="text-2xl font-bold text-blue-700">{bmi}</div>
-                  <div className="text-xs text-blue-600 mt-1">
-                    {parseFloat(bmi) < 18.5 && 'Underweight'}
-                    {parseFloat(bmi) >= 18.5 && parseFloat(bmi) < 25 && 'Normal weight'}
-                    {parseFloat(bmi) >= 25 && parseFloat(bmi) < 30 && 'Overweight'}
-                    {parseFloat(bmi) >= 30 && 'Obese'}
+                <div className="col-span-2">
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <p className="text-sm text-gray-600">
+                      Your BMI: <span className="font-semibold text-gray-900">{bmi}</span>
+                    </p>
                   </div>
                 </div>
               )}
             </div>
           </section>
 
-          {/* Medical History */}
+          {/* Fitness Goals & Experience */}
           <section className="bg-white rounded-xl shadow-sm p-6">
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-                <Heart className="w-5 h-5 text-red-600" />
+              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                <Target className="w-5 h-5 text-blue-600" />
               </div>
               <div>
-                <h2 className="text-xl font-semibold">Medical History</h2>
-                <p className="text-sm text-gray-600">Chronic conditions and past health issues</p>
+                <h2 className="text-xl font-semibold">Fitness Goals & Experience</h2>
+                <p className="text-sm text-gray-600">What you want to achieve and your experience level</p>
               </div>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-6">
+              {/* Fitness Level */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Chronic Conditions
+                  Fitness Level
                 </label>
-                <div className="flex gap-2 mb-3">
+                <select
+                  value={formData.fitness_level || ''}
+                  onChange={(e) => setFormData({ ...formData, fitness_level: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                >
+                  <option value="">Select your fitness level</option>
+                  <option value="beginner">Beginner (0-1 year)</option>
+                  <option value="intermediate">Intermediate (1-3 years)</option>
+                  <option value="advanced">Advanced (3+ years)</option>
+                </select>
+              </div>
+
+              {/* Training Experience */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Training Experience
+                </label>
+                <input
+                  type="text"
+                  value={formData.training_experience || ''}
+                  onChange={(e) => setFormData({ ...formData, training_experience: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  placeholder="e.g., 2 years, 6 months"
+                />
+              </div>
+
+              {/* Fitness Goals */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Fitness Goals
+                </label>
+                <div className="flex gap-2 mb-2">
                   <input
                     type="text"
-                    value={chronicConditionInput}
-                    onChange={(e) => setChronicConditionInput(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addChronicCondition())}
+                    value={fitnessGoalInput}
+                    onChange={(e) => setFitnessGoalInput(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addFitnessGoal())}
                     className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    placeholder="e.g., diabetes, hypertension"
+                    placeholder="e.g., muscle gain, fat loss, strength"
                   />
                   <button
                     type="button"
-                    onClick={addChronicCondition}
-                    className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition"
+                    onClick={addFitnessGoal}
+                    className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
                   >
                     Add
                   </button>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {formData.chronic_conditions?.map((condition, index) => (
+                  {formData.fitness_goals?.map((goal, index) => (
                     <span
                       key={index}
-                      className="inline-flex items-center gap-2 px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm"
+                      className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm"
+                    >
+                      {goal}
+                      <button
+                        type="button"
+                        onClick={() => removeFitnessGoal(index)}
+                        className="hover:text-blue-900"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  Common goals: muscle gain, fat loss, strength building, athletic performance, general fitness
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* Training Schedule */}
+          <section className="bg-white rounded-xl shadow-sm p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                <Calendar className="w-5 h-5 text-green-600" />
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold">Training Schedule</h2>
+                <p className="text-sm text-gray-600">How often and how long you can train</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Training Days Per Week
+                </label>
+                <input
+                  type="number"
+                  value={formData.training_days_per_week || ''}
+                  onChange={(e) => setFormData({ ...formData, training_days_per_week: parseInt(e.target.value) })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  placeholder="e.g., 4"
+                  min="1"
+                  max="7"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Training Duration (minutes/session)
+                </label>
+                <input
+                  type="number"
+                  value={formData.training_duration_minutes || ''}
+                  onChange={(e) => setFormData({ ...formData, training_duration_minutes: parseInt(e.target.value) })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  placeholder="e.g., 60"
+                  min="15"
+                  max="240"
+                  step="15"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Current Activity Level
+                </label>
+                <select
+                  value={formData.exercise_frequency || ''}
+                  onChange={(e) => setFormData({ ...formData, exercise_frequency: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                >
+                  <option value="">Select activity level</option>
+                  <option value="sedentary">Sedentary (little or no exercise)</option>
+                  <option value="lightly_active">Lightly Active (1-2 days/week)</option>
+                  <option value="moderately_active">Moderately Active (3-4 days/week)</option>
+                  <option value="very_active">Very Active (5-6 days/week)</option>
+                  <option value="extremely_active">Extremely Active (daily intense training)</option>
+                </select>
+              </div>
+            </div>
+          </section>
+
+          {/* Available Equipment */}
+          <section className="bg-white rounded-xl shadow-sm p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                <Dumbbell className="w-5 h-5 text-purple-600" />
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold">Available Equipment</h2>
+                <p className="text-sm text-gray-600">What equipment you have access to</p>
+              </div>
+            </div>
+
+            <div>
+              <div className="flex gap-2 mb-2">
+                <input
+                  type="text"
+                  value={equipmentInput}
+                  onChange={(e) => setEquipmentInput(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addEquipment())}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  placeholder="e.g., dumbbells, barbell, pull-up bar"
+                />
+                <button
+                  type="button"
+                  onClick={addEquipment}
+                  className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+                >
+                  Add
+                </button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {formData.available_equipment?.map((equipment, index) => (
+                  <span
+                    key={index}
+                    className="inline-flex items-center gap-1 px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm"
+                  >
+                    {equipment}
+                    <button
+                      type="button"
+                      onClick={() => removeEquipment(index)}
+                      className="hover:text-purple-900"
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                Examples: full gym, dumbbells, barbells, resistance bands, pull-up bar, bodyweight only
+              </p>
+            </div>
+          </section>
+
+          {/* Injuries & Health Conditions */}
+          <section className="bg-white rounded-xl shadow-sm p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                <AlertCircle className="w-5 h-5 text-red-600" />
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold">Injuries & Health Conditions</h2>
+                <p className="text-sm text-gray-600">Any injuries or health issues to consider</p>
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              {/* Current Injuries */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Current Injuries
+                </label>
+                <div className="flex gap-2 mb-2">
+                  <input
+                    type="text"
+                    value={injuryInput}
+                    onChange={(e) => setInjuryInput(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addInjury())}
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    placeholder="e.g., knee pain, shoulder strain"
+                  />
+                  <button
+                    type="button"
+                    onClick={addInjury}
+                    className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+                  >
+                    Add
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {formData.current_injuries?.map((injury, index) => (
+                    <span
+                      key={index}
+                      className="inline-flex items-center gap-1 px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm"
+                    >
+                      {injury}
+                      <button
+                        type="button"
+                        onClick={() => removeInjury(index)}
+                        className="hover:text-red-900"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Health Conditions */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Health Conditions
+                </label>
+                <div className="flex gap-2 mb-2">
+                  <input
+                    type="text"
+                    value={healthConditionInput}
+                    onChange={(e) => setHealthConditionInput(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addHealthCondition())}
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    placeholder="e.g., high blood pressure, asthma"
+                  />
+                  <button
+                    type="button"
+                    onClick={addHealthCondition}
+                    className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+                  >
+                    Add
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {formData.health_conditions?.map((condition, index) => (
+                    <span
+                      key={index}
+                      className="inline-flex items-center gap-1 px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm"
                     >
                       {condition}
                       <button
                         type="button"
-                        onClick={() => removeChronicCondition(index)}
-                        className="hover:text-red-900"
+                        onClick={() => removeHealthCondition(index)}
+                        className="hover:text-orange-900"
                       >
                         ×
                       </button>
@@ -348,52 +591,70 @@ export default function ProfilePage() {
             </div>
           </section>
 
-          {/* Allergies */}
+          {/* Diet & Nutrition */}
           <section className="bg-white rounded-xl shadow-sm p-6">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
-                <AlertCircle className="w-5 h-5 text-yellow-600" />
+                <Utensils className="w-5 h-5 text-yellow-600" />
               </div>
               <div>
-                <h2 className="text-xl font-semibold">Allergies</h2>
-                <p className="text-sm text-gray-600">Important for medication safety</p>
+                <h2 className="text-xl font-semibold">Diet & Nutrition Preferences</h2>
+                <p className="text-sm text-gray-600">Your dietary preferences and restrictions</p>
               </div>
             </div>
 
             <div className="space-y-6">
-              {/* Drug Allergies */}
+              {/* Diet Preference */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Drug Allergies
+                  Diet Preference
                 </label>
-                <div className="flex gap-2 mb-3">
+                <select
+                  value={formData.diet_preference || ''}
+                  onChange={(e) => setFormData({ ...formData, diet_preference: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                >
+                  <option value="">Select diet preference</option>
+                  <option value="persian_cuisine">Persian Cuisine</option>
+                  <option value="flexible">Flexible</option>
+                  <option value="mediterranean">Mediterranean</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+
+              {/* Dietary Restrictions */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Dietary Restrictions
+                </label>
+                <div className="flex gap-2 mb-2">
                   <input
                     type="text"
-                    value={drugAllergyInput}
-                    onChange={(e) => setDrugAllergyInput(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addAllergy('drug', drugAllergyInput), setDrugAllergyInput(''))}
+                    value={dietaryRestrictionInput}
+                    onChange={(e) => setDietaryRestrictionInput(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addDietaryRestriction())}
                     className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    placeholder="e.g., penicillin, aspirin"
+                    placeholder="e.g., vegetarian, halal, gluten-free"
                   />
                   <button
                     type="button"
-                    onClick={() => { addAllergy('drug', drugAllergyInput); setDrugAllergyInput(''); }}
-                    className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition"
+                    onClick={addDietaryRestriction}
+                    className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
                   >
                     Add
                   </button>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {formData.allergies?.drug?.map((allergy, index) => (
+                  {formData.dietary_restrictions?.map((restriction, index) => (
                     <span
                       key={index}
-                      className="inline-flex items-center gap-2 px-3 py-1 bg-yellow-100 text-yellow-900 rounded-full text-sm font-medium"
+                      className="inline-flex items-center gap-1 px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-sm"
                     >
-                      {allergy}
+                      {restriction}
                       <button
                         type="button"
-                        onClick={() => removeAllergy('drug', index)}
-                        className="hover:text-yellow-950"
+                        onClick={() => removeDietaryRestriction(index)}
+                        className="hover:text-yellow-900"
                       >
                         ×
                       </button>
@@ -407,75 +668,34 @@ export default function ProfilePage() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Food Allergies
                 </label>
-                <div className="flex gap-2 mb-3">
+                <div className="flex gap-2 mb-2">
                   <input
                     type="text"
                     value={foodAllergyInput}
                     onChange={(e) => setFoodAllergyInput(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addAllergy('food', foodAllergyInput), setFoodAllergyInput(''))}
+                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addFoodAllergy())}
                     className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    placeholder="e.g., peanuts, shellfish"
+                    placeholder="e.g., peanuts, dairy, shellfish"
                   />
                   <button
                     type="button"
-                    onClick={() => { addAllergy('food', foodAllergyInput); setFoodAllergyInput(''); }}
-                    className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition"
+                    onClick={addFoodAllergy}
+                    className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
                   >
                     Add
                   </button>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {formData.allergies?.food?.map((allergy, index) => (
+                  {formData.food_allergies?.map((allergy, index) => (
                     <span
                       key={index}
-                      className="inline-flex items-center gap-2 px-3 py-1 bg-yellow-100 text-yellow-900 rounded-full text-sm"
+                      className="inline-flex items-center gap-1 px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm"
                     >
                       {allergy}
                       <button
                         type="button"
-                        onClick={() => removeAllergy('food', index)}
-                        className="hover:text-yellow-950"
-                      >
-                        ×
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Environmental Allergies */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Environmental Allergies
-                </label>
-                <div className="flex gap-2 mb-3">
-                  <input
-                    type="text"
-                    value={environmentalAllergyInput}
-                    onChange={(e) => setEnvironmentalAllergyInput(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addAllergy('environmental', environmentalAllergyInput), setEnvironmentalAllergyInput(''))}
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    placeholder="e.g., pollen, dust mites"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => { addAllergy('environmental', environmentalAllergyInput); setEnvironmentalAllergyInput(''); }}
-                    className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition"
-                  >
-                    Add
-                  </button>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {formData.allergies?.environmental?.map((allergy, index) => (
-                    <span
-                      key={index}
-                      className="inline-flex items-center gap-2 px-3 py-1 bg-yellow-100 text-yellow-900 rounded-full text-sm"
-                    >
-                      {allergy}
-                      <button
-                        type="button"
-                        onClick={() => removeAllergy('environmental', index)}
-                        className="hover:text-yellow-950"
+                        onClick={() => removeFoodAllergy(index)}
+                        className="hover:text-red-900"
                       >
                         ×
                       </button>
@@ -486,254 +706,86 @@ export default function ProfilePage() {
             </div>
           </section>
 
-          {/* Current Medications */}
+          {/* Body Composition (Optional) */}
           <section className="bg-white rounded-xl shadow-sm p-6">
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Pill className="w-5 h-5 text-blue-600" />
+              <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
+                <User className="w-5 h-5 text-indigo-600" />
               </div>
               <div>
-                <h2 className="text-xl font-semibold">Current Medications</h2>
-                <p className="text-sm text-gray-600">Medications you're currently taking</p>
+                <h2 className="text-xl font-semibold">Body Composition (Optional)</h2>
+                <p className="text-sm text-gray-600">Track your body composition metrics</p>
               </div>
             </div>
 
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Body Fat Percentage (%)
+                </label>
                 <input
-                  type="text"
-                  value={medicationInput.name}
-                  onChange={(e) => setMedicationInput({ ...medicationInput, name: e.target.value })}
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="Medication name"
+                  type="number"
+                  value={formData.body_fat_percentage || ''}
+                  onChange={(e) => setFormData({ ...formData, body_fat_percentage: parseFloat(e.target.value) })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  placeholder="e.g., 15.5"
+                  min="3"
+                  max="50"
+                  step="0.1"
                 />
-                <div className="flex gap-2">
+                <p className="text-xs text-gray-500 mt-1">
+                  You can get this measured via DEXA scan, calipers, or bioelectrical impedance
+                </p>
+              </div>
+
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <p className="text-sm font-medium text-gray-700 mb-2">Body Measurements (cm)</p>
+                <div className="grid grid-cols-2 gap-4">
                   <input
-                    type="text"
-                    value={medicationInput.dose}
-                    onChange={(e) => setMedicationInput({ ...medicationInput, dose: e.target.value })}
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    placeholder="Dosage (e.g., 500mg twice daily)"
+                    type="number"
+                    placeholder="Chest"
+                    value={formData.body_measurements?.chest || ''}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      body_measurements: { ...formData.body_measurements, chest: parseFloat(e.target.value) }
+                    })}
+                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                    step="0.1"
                   />
-                  <button
-                    type="button"
-                    onClick={addMedication}
-                    className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition"
-                  >
-                    Add
-                  </button>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                {formData.current_medications?.map((med, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200"
-                  >
-                    <div>
-                      <div className="font-medium text-blue-900">{med.name}</div>
-                      {med.dose && <div className="text-sm text-blue-700">{med.dose}</div>}
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => removeMedication(index)}
-                      className="text-blue-600 hover:text-blue-800 font-bold"
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          {/* Past Surgeries */}
-          <section className="bg-white rounded-xl shadow-sm p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                <Activity className="w-5 h-5 text-purple-600" />
-              </div>
-              <div>
-                <h2 className="text-xl font-semibold">Past Surgeries</h2>
-                <p className="text-sm text-gray-600">Previous surgical procedures</p>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input
-                  type="text"
-                  value={surgeryInput.name}
-                  onChange={(e) => setSurgeryInput({ ...surgeryInput, name: e.target.value })}
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="Surgery name"
-                />
-                <div className="flex gap-2">
                   <input
-                    type="text"
-                    value={surgeryInput.year}
-                    onChange={(e) => setSurgeryInput({ ...surgeryInput, year: e.target.value })}
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    placeholder="Year (e.g., 2020)"
+                    type="number"
+                    placeholder="Waist"
+                    value={formData.body_measurements?.waist || ''}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      body_measurements: { ...formData.body_measurements, waist: parseFloat(e.target.value) }
+                    })}
+                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                    step="0.1"
                   />
-                  <button
-                    type="button"
-                    onClick={addSurgery}
-                    className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition"
-                  >
-                    Add
-                  </button>
+                  <input
+                    type="number"
+                    placeholder="Hips"
+                    value={formData.body_measurements?.hips || ''}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      body_measurements: { ...formData.body_measurements, hips: parseFloat(e.target.value) }
+                    })}
+                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                    step="0.1"
+                  />
+                  <input
+                    type="number"
+                    placeholder="Arms"
+                    value={formData.body_measurements?.arms || ''}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      body_measurements: { ...formData.body_measurements, arms: parseFloat(e.target.value) }
+                    })}
+                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                    step="0.1"
+                  />
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                {formData.past_surgeries?.map((surgery, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between p-3 bg-purple-50 rounded-lg border border-purple-200"
-                  >
-                    <div>
-                      <div className="font-medium text-purple-900">{surgery.name}</div>
-                      {surgery.year && <div className="text-sm text-purple-700">{surgery.year}</div>}
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => removeSurgery(index)}
-                      className="text-purple-600 hover:text-purple-800 font-bold"
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          {/* Lifestyle */}
-          <section className="bg-white rounded-xl shadow-sm p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                <Activity className="w-5 h-5 text-green-600" />
-              </div>
-              <div>
-                <h2 className="text-xl font-semibold">Lifestyle</h2>
-                <p className="text-sm text-gray-600">Health habits and behaviors</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Smoking Status
-                </label>
-                <select
-                  value={formData.smoking_status || ''}
-                  onChange={(e) => setFormData({ ...formData, smoking_status: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                >
-                  <option value="">Select</option>
-                  <option value="never">Never</option>
-                  <option value="former">Former smoker</option>
-                  <option value="current">Current smoker</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Alcohol Consumption
-                </label>
-                <select
-                  value={formData.alcohol_consumption || ''}
-                  onChange={(e) => setFormData({ ...formData, alcohol_consumption: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                >
-                  <option value="">Select</option>
-                  <option value="none">None</option>
-                  <option value="occasional">Occasional</option>
-                  <option value="moderate">Moderate</option>
-                  <option value="heavy">Heavy</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Exercise Frequency
-                </label>
-                <select
-                  value={formData.exercise_frequency || ''}
-                  onChange={(e) => setFormData({ ...formData, exercise_frequency: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                >
-                  <option value="">Select</option>
-                  <option value="none">None</option>
-                  <option value="1-2_per_week">1-2 times per week</option>
-                  <option value="3-4_per_week">3-4 times per week</option>
-                  <option value="5+_per_week">5+ times per week</option>
-                </select>
-              </div>
-            </div>
-          </section>
-
-          {/* Emergency Contact */}
-          <section className="bg-white rounded-xl shadow-sm p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                <Users className="w-5 h-5 text-orange-600" />
-              </div>
-              <div>
-                <h2 className="text-xl font-semibold">Emergency Contact</h2>
-                <p className="text-sm text-gray-600">Someone we can reach in case of emergency</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Name
-                </label>
-                <input
-                  type="text"
-                  value={formData.emergency_contact?.name || ''}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    emergency_contact: { ...formData.emergency_contact, name: e.target.value }
-                  })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="Full name"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Relationship
-                </label>
-                <input
-                  type="text"
-                  value={formData.emergency_contact?.relationship || ''}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    emergency_contact: { ...formData.emergency_contact, relationship: e.target.value }
-                  })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="e.g., spouse, parent"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Phone Number
-                </label>
-                <input
-                  type="tel"
-                  value={formData.emergency_contact?.phone || ''}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    emergency_contact: { ...formData.emergency_contact, phone: e.target.value }
-                  })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="Phone number"
-                />
               </div>
             </div>
           </section>
@@ -741,18 +793,11 @@ export default function ProfilePage() {
           {/* Submit Button */}
           <div className="flex justify-end gap-4">
             <button
-              type="button"
-              onClick={() => window.history.back()}
-              className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition"
-            >
-              Cancel
-            </button>
-            <button
               type="submit"
               disabled={loading}
-              className="px-6 py-3 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
             >
-              {loading ? 'Saving...' : 'Save Health Profile'}
+              {loading ? 'Saving...' : 'Save Fitness Profile'}
             </button>
           </div>
         </form>
