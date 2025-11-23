@@ -56,8 +56,8 @@ class User(Base):
 
 
 class ClientProfile(Base):
-    """Client legal profile"""
-    __tablename__ = "client_profiles"
+    """Client legal profile (uses health_profiles table for compatibility)"""
+    __tablename__ = "health_profiles"
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), unique=True, nullable=False)
@@ -95,8 +95,8 @@ class ClientProfile(Base):
 
 
 class CaseHistory(Base):
-    """Legal case history records"""
-    __tablename__ = "case_history"
+    """Legal case history records (uses medical_history table for compatibility)"""
+    __tablename__ = "medical_history"
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
@@ -136,15 +136,15 @@ class Conversation(Base):
     title = Column(String(255))
 
     initial_inquiry = Column(Text)
-    urgency_level = Column(SQLEnum(UrgencyLevel))
-    recommended_legal_area = Column(String(100))  # family law, criminal defense, corporate, etc.
+    severity_level = Column(SQLEnum(UrgencyLevel))  # Reusing severity_level column for urgency
+    recommended_specialty = Column(String(100))  # Reusing specialty column for legal area
 
     status = Column(String(50), default="active")  # active, completed, archived
 
-    # Agent outputs
-    legal_issues_identified = Column(JSON)
-    legal_advice_provided = Column(JSON)
-    urgency_flags = Column(JSON)
+    # Agent outputs (reusing original column names)
+    diagnosis = Column(JSON)  # Reusing for legal_issues_identified
+    treatment_plan = Column(JSON)  # Reusing for legal_advice_provided
+    severity_flags = Column(JSON)  # Reusing for urgency_flags
 
     started_at = Column(DateTime, default=datetime.utcnow)
     ended_at = Column(DateTime)
@@ -224,18 +224,18 @@ class KnowledgeDocument(Base):
 
 
 class UrgentLegalAlert(Base):
-    """Urgent legal matter alert records"""
-    __tablename__ = "urgent_legal_alerts"
+    """Urgent legal matter alert records (uses emergency_alerts table for compatibility)"""
+    __tablename__ = "emergency_alerts"
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     conversation_id = Column(Integer, ForeignKey("conversations.id"))
 
     alert_type = Column(String(50), nullable=False)  # deadline, court_date, statute_limitation
-    urgency = Column(SQLEnum(UrgencyLevel), nullable=False)
+    severity = Column(SQLEnum(UrgencyLevel), nullable=False)  # Reusing severity column for urgency
 
-    legal_issues = Column(JSON)
-    detected_matter = Column(String(255))
+    conditions = Column(JSON)  # Reusing conditions column for legal_issues
+    detected_condition = Column(String(255))  # Reusing for detected_matter
     deadline_date = Column(DateTime)  # Critical deadline if applicable
 
     recommendation = Column(Text)
