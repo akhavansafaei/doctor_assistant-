@@ -227,7 +227,7 @@ class KnowledgeDocument(Base):
     document_type = Column(String(50))  # guideline, research, drug_info
 
     content = Column(Text)
-    metadata = Column(JSON)
+    doc_metadata = Column(JSON)  # Renamed from 'metadata' to avoid SQLAlchemy reserved keyword
 
     vector_id = Column(String(100))  # ID in vector database
     embedding_model = Column(String(100))
