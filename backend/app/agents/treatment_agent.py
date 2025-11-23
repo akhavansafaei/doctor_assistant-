@@ -1,57 +1,57 @@
-"""Treatment planning agent"""
+"""Legal advice agent"""
 from typing import Dict, Any, List, Optional
 from .base_agent import BaseAgent
 
 
-class TreatmentAgent(BaseAgent):
+class LegalAdviceAgent(BaseAgent):
     """
-    Treatment Planning Agent
-    - Suggests evidence-based treatment options
-    - Checks drug interactions
-    - Provides lifestyle recommendations
-    - Offers patient education
+    Legal Advice Agent
+    - Suggests legal options and strategies
+    - Considers jurisdictional requirements
+    - Provides procedural guidance
+    - Offers client education on legal process
     """
 
     def __init__(self):
-        system_prompt = """You are an expert medical treatment planning AI assistant.
+        system_prompt = """You are an expert legal guidance AI assistant.
 
 Your role is to:
-1. Suggest evidence-based treatment options based on clinical guidelines
-2. Provide both pharmacological and non-pharmacological interventions
-3. Consider patient-specific factors (age, comorbidities, allergies, current medications)
-4. Check for potential drug interactions and contraindications
-5. Offer lifestyle modifications and preventive measures
-6. Provide patient education tailored to health literacy level
+1. Suggest legal options and strategies based on applicable laws and precedents
+2. Provide both legal remedies and alternative dispute resolution options
+3. Consider client-specific factors (jurisdiction, business context, legal restrictions)
+4. Identify potential conflicts or complications
+5. Offer procedural guidance and next steps
+6. Provide client education tailored to legal complexity
 
 CRITICAL GUIDELINES:
-- Base all recommendations on clinical practice guidelines and evidence-based medicine
-- ALWAYS check for drug interactions and contraindications
-- Consider patient allergies and current medications
-- Provide multiple treatment options when available
-- Explain risks and benefits of each option
-- Include non-pharmacological interventions
-- Emphasize that recommendations are for discussion with healthcare provider
-- NEVER prescribe medications - only suggest options for doctor consultation
+- Base all guidance on applicable statutes, regulations, and legal precedents
+- ALWAYS consider jurisdictional requirements and limitations
+- Account for statutes of limitations and procedural deadlines
+- Provide multiple legal options when available
+- Explain risks, benefits, and costs of each option
+- Include alternative dispute resolution methods (mediation, arbitration)
+- Emphasize that guidance is for attorney consultation and review
+- NEVER provide definitive legal advice - only suggest options for attorney review
 
-Treatment Framework:
-1. First-line treatments (most evidence, best safety profile)
-2. Alternative options
-3. Lifestyle modifications
-4. When to escalate care
-5. Monitoring and follow-up recommendations
+Legal Guidance Framework:
+1. Primary legal options (strongest legal position, best precedent)
+2. Alternative approaches
+3. Settlement and ADR options
+4. Procedural requirements and deadlines
+5. Next steps and timeline recommendations
 
 Always structure output with:
-- Treatment options (ranked by evidence/guidelines)
-- Drug interaction warnings
-- Contraindications
-- Lifestyle recommendations
-- Patient education points
-- Follow-up plan
+- Legal options (ranked by strength/likelihood)
+- Jurisdictional considerations
+- Procedural requirements
+- Timeline and deadlines
+- Client education points
+- Next steps and action items
 """
 
         super().__init__(
-            name="Treatment Agent",
-            description="Evidence-based treatment planning",
+            name="Legal Advice Agent",
+            description="Legal options and guidance",
             system_prompt=system_prompt,
             use_rag=True
         )
@@ -62,89 +62,93 @@ Always structure output with:
         context: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """
-        Generate treatment recommendations
+        Generate legal advice and recommendations
 
         Args:
-            input_data: Contains condition, patient profile, diagnostic info
+            input_data: Contains legal issue, client profile, legal analysis
             context: Conversation history and previous agent outputs
 
         Returns:
-            Treatment plan with options and recommendations
+            Legal guidance with options and recommendations
         """
-        condition = input_data.get("condition", "")
-        patient_profile = input_data.get("patient_profile", {})
-        differential_diagnoses = input_data.get("differential_diagnoses", [])
+        legal_issue = input_data.get("legal_issue", "")
+        client_profile = input_data.get("client_profile", {})
+        legal_issues_identified = input_data.get("legal_issues_identified", [])
 
-        # Build query for treatment guidelines
-        query = self._build_treatment_query(condition, differential_diagnoses, patient_profile)
+        # Build query for legal guidance
+        query = self._build_guidance_query(legal_issue, legal_issues_identified, client_profile)
 
-        # Retrieve treatment guidelines
+        # Retrieve legal guidance and precedents
         retrieved_docs = await self.retrieve_context(
             query=query,
-            filters={"document_type": ["clinical_guideline", "drug_info"]}
+            filters={"document_type": ["statute", "case_law", "regulation"]}
         )
 
-        medical_context = self.format_context(retrieved_docs)
+        legal_context = self.format_context(retrieved_docs)
 
-        # Check for drug interactions
-        drug_warnings = self._check_medication_conflicts(patient_profile)
+        # Check for legal conflicts or complications
+        conflict_warnings = self._check_legal_complications(client_profile)
 
-        # Build treatment planning prompt
-        treatment_prompt = f"""Develop treatment plan for the following clinical scenario:
+        # Build legal guidance prompt
+        guidance_prompt = f"""Develop legal guidance for the following scenario:
 
-PRIMARY CONDITION:
-{condition}
+PRIMARY LEGAL ISSUE:
+{legal_issue}
 
-DIFFERENTIAL DIAGNOSES (if applicable):
-{self._format_diagnoses(differential_diagnoses)}
+LEGAL ISSUES IDENTIFIED (if applicable):
+{self._format_legal_issues(legal_issues_identified)}
 
-PATIENT INFORMATION:
-{self._format_patient_info(patient_profile)}
+CLIENT INFORMATION:
+{self._format_client_info(client_profile)}
 
-CURRENT MEDICATIONS:
-{self._format_current_meds(patient_profile)}
+ACTIVE LEGAL MATTERS:
+{self._format_active_matters(client_profile)}
 
-ALLERGIES:
-{self._format_allergies(patient_profile)}
+LEGAL RESTRICTIONS:
+{self._format_restrictions(client_profile)}
 
-{medical_context}
+{legal_context}
 
-{drug_warnings}
+{conflict_warnings}
 
-Provide treatment recommendations in the following format:
+Provide legal guidance in the following format:
 
-FIRST_LINE_TREATMENTS:
-1. [Treatment option]
-   - Evidence Level: [Strong/Moderate/Weak]
-   - Mechanism: [How it works]
-   - Typical Regimen: [Dosing if medication, or intervention details]
-   - Expected Benefit: [What patient can expect]
-   - Potential Risks/Side Effects: [Important safety information]
-   - Contraindications: [When NOT to use]
+PRIMARY_LEGAL_OPTIONS:
+1. [Legal option or strategy]
+   - Strength of Legal Position: [Strong/Moderate/Weak]
+   - Legal Basis: [Applicable statutes, regulations, or case law]
+   - Procedural Steps: [What needs to be done]
+   - Potential Outcome: [What client can expect]
+   - Risks and Considerations: [Important factors to consider]
+   - Estimated Timeline: [How long this might take]
+   - Cost Considerations: [Relative cost if applicable]
 
-NON_PHARMACOLOGICAL_INTERVENTIONS:
-- [Lifestyle modifications]
-- [Physical therapy, diet, exercise, etc.]
+ALTERNATIVE_DISPUTE_RESOLUTION:
+- [Mediation, arbitration, or settlement options]
+- [Benefits and drawbacks of each]
 
-DRUG_INTERACTION_WARNINGS:
-[Any potential interactions with current medications]
+JURISDICTIONAL_REQUIREMENTS:
+[Specific requirements for the relevant jurisdiction]
 
-ALTERNATIVE_OPTIONS:
-[Other evidence-based options if first-line fails or contraindicated]
+PROCEDURAL_DEADLINES:
+[Critical deadlines, statutes of limitations, filing requirements]
 
-LIFESTYLE_RECOMMENDATIONS:
-- [Specific lifestyle changes]
-- [Preventive measures]
-- [Self-care strategies]
+ALTERNATIVE_STRATEGIES:
+[Other legal approaches if primary option fails or is unavailable]
 
-PATIENT_EDUCATION:
-[Key points patient should understand about their condition and treatment]
+RECOMMENDED_NEXT_STEPS:
+- [Immediate actions to take]
+- [Documents to gather]
+- [People to contact]
 
-MONITORING_PLAN:
-[What to monitor, warning signs, when to follow up]
+CLIENT_EDUCATION:
+[Key points client should understand about their legal situation and options]
 
-WHEN_TO_SEEK_IMMEDIATE_CARE:
-[Red flags that require urgent attention]
+TIMELINE_CONSIDERATIONS:
+[Expected timeline, key milestones, deadline tracking]
+
+IMPORTANT_WARNINGS:
+[Critical factors, potential pitfalls, things to avoid]
 """
 
         # Get conversation history
@@ -152,7 +156,7 @@ WHEN_TO_SEEK_IMMEDIATE_CARE:
 
         # Create messages
         messages = self.create_messages(
-            user_message=treatment_prompt,
+            user_message=guidance_prompt,
             conversation_history=conversation_history[-4:]
         )
 
@@ -160,12 +164,12 @@ WHEN_TO_SEEK_IMMEDIATE_CARE:
         response = await self.invoke_llm(messages, temperature=0.1)
 
         # Parse response
-        parsed = self._parse_treatment_output(response)
+        parsed = self._parse_guidance_output(response)
 
         # Add sources
         parsed["sources"] = [
             {
-                "title": doc.get("metadata", {}).get("title", "Clinical Guideline"),
+                "title": doc.get("metadata", {}).get("title", "Legal Source"),
                 "text": doc["text"][:300],
                 "source": doc.get("metadata", {}).get("source", "Unknown"),
                 "relevance_score": doc.get("rerank_score", doc.get("rrf_score", 0))
@@ -178,146 +182,180 @@ WHEN_TO_SEEK_IMMEDIATE_CARE:
 
         return parsed
 
-    def _build_treatment_query(
+    def _build_guidance_query(
         self,
-        condition: str,
-        differential_diagnoses: List[Dict[str, Any]],
-        patient_profile: Dict[str, Any]
+        legal_issue: str,
+        legal_issues_identified: List[Dict[str, Any]],
+        client_profile: Dict[str, Any]
     ) -> str:
-        """Build query for treatment guideline retrieval"""
-        query_parts = [f"treatment for {condition}"]
+        """Build query for legal guidance retrieval"""
+        query_parts = [f"legal options for {legal_issue}"]
 
-        if differential_diagnoses:
-            top_diagnosis = differential_diagnoses[0].get("condition", "")
-            if top_diagnosis:
-                query_parts.append(f"management of {top_diagnosis}")
+        if legal_issues_identified:
+            top_issue = legal_issues_identified[0].get("issue", "")
+            if top_issue:
+                query_parts.append(f"strategies for {top_issue}")
 
-        # Add patient-specific factors
-        if patient_profile.get("chronic_conditions"):
-            query_parts.append(f"in patient with {patient_profile['chronic_conditions'][0]}")
+        # Add client-specific factors
+        if client_profile.get("legal_areas_of_interest"):
+            query_parts.append(f"in context of {client_profile['legal_areas_of_interest'][0]}")
 
         return " ".join(query_parts)
 
-    def _format_diagnoses(self, diagnoses: List[Dict[str, Any]]) -> str:
-        """Format differential diagnoses"""
-        if not diagnoses:
+    def _format_legal_issues(self, issues: List[Dict[str, Any]]) -> str:
+        """Format legal issues identified"""
+        if not issues:
             return "None provided"
 
         formatted = []
-        for i, dx in enumerate(diagnoses[:3], 1):
-            condition = dx.get("condition", "Unknown")
-            likelihood = dx.get("likelihood", "")
-            formatted.append(f"{i}. {condition} ({likelihood})")
+        for i, issue in enumerate(issues[:3], 1):
+            issue_name = issue.get("issue", "Unknown")
+            relevance = issue.get("relevance", "")
+            formatted.append(f"{i}. {issue_name} ({relevance})")
 
         return "\n".join(formatted)
 
-    def _format_patient_info(self, patient_profile: Dict[str, Any]) -> str:
-        """Format patient information"""
+    def _format_client_info(self, client_profile: Dict[str, Any]) -> str:
+        """Format client information"""
         info_parts = []
 
-        if patient_profile.get("age"):
-            info_parts.append(f"- Age: {patient_profile['age']}")
+        if client_profile.get("occupation"):
+            info_parts.append(f"- Occupation: {client_profile['occupation']}")
 
-        if patient_profile.get("chronic_conditions"):
+        if client_profile.get("business_entities"):
             info_parts.append(
-                f"- Chronic Conditions: {', '.join(patient_profile['chronic_conditions'])}"
+                f"- Business Entities: {len(client_profile['business_entities'])} entities"
             )
 
-        if patient_profile.get("smoking_status"):
-            info_parts.append(f"- Smoking Status: {patient_profile['smoking_status']}")
+        if client_profile.get("citizenship"):
+            info_parts.append(f"- Citizenship: {client_profile['citizenship']}")
 
-        return "\n".join(info_parts) if info_parts else "Limited patient information"
+        return "\n".join(info_parts) if info_parts else "Limited client information"
 
-    def _format_current_meds(self, patient_profile: Dict[str, Any]) -> str:
-        """Format current medications"""
-        meds = patient_profile.get("current_medications", [])
-        if not meds:
+    def _format_active_matters(self, client_profile: Dict[str, Any]) -> str:
+        """Format active legal matters"""
+        matters = client_profile.get("active_legal_matters", [])
+        if not matters:
             return "None reported"
 
         formatted = []
-        for med in meds:
-            name = med.get("name", "Unknown")
-            dose = med.get("dose", "")
-            formatted.append(f"- {name} {dose}".strip())
+        for matter in matters[:5]:
+            description = matter.get("description", "Unknown")
+            status = matter.get("status", "")
+            formatted.append(f"- {description} ({status})".strip())
 
         return "\n".join(formatted)
 
-    def _format_allergies(self, patient_profile: Dict[str, Any]) -> str:
-        """Format allergies"""
-        allergies = patient_profile.get("allergies", {})
-        if not allergies:
+    def _format_restrictions(self, client_profile: Dict[str, Any]) -> str:
+        """Format legal restrictions"""
+        restrictions = client_profile.get("legal_restrictions", [])
+        if not restrictions:
             return "None reported"
 
-        all_allergies = []
-        for category, items in allergies.items():
-            if items:
-                all_allergies.extend([f"{item} ({category})" for item in items])
+        formatted = []
+        for restriction in restrictions:
+            if isinstance(restriction, dict):
+                restriction_type = restriction.get("type", "Unknown")
+                details = restriction.get("details", "")
+                formatted.append(f"- {restriction_type}: {details}".strip())
+            else:
+                formatted.append(f"- {restriction}")
 
-        return "\n".join(f"- {a}" for a in all_allergies) if all_allergies else "None reported"
+        return "\n".join(formatted) if formatted else "None reported"
 
-    def _check_medication_conflicts(self, patient_profile: Dict[str, Any]) -> str:
-        """Check for potential medication conflicts"""
-        current_meds = patient_profile.get("current_medications", [])
-        allergies = patient_profile.get("allergies", {})
+    def _check_legal_complications(self, client_profile: Dict[str, Any]) -> str:
+        """Check for potential legal complications"""
+        restrictions = client_profile.get("legal_restrictions", [])
+        active_matters = client_profile.get("active_legal_matters", [])
 
         warnings = []
 
-        if allergies.get("drug", []):
+        if restrictions:
             warnings.append(
-                f"⚠️ DRUG ALLERGIES: Patient is allergic to: {', '.join(allergies['drug'])}. "
-                "Avoid these medications and related compounds."
+                f"⚠️ LEGAL RESTRICTIONS: Client has {len(restrictions)} legal restriction(s). "
+                "Ensure any legal strategy complies with existing court orders or restrictions."
             )
 
-        if current_meds:
+        if active_matters and len(active_matters) > 2:
             warnings.append(
-                f"⚠️ INTERACTION CHECK REQUIRED: Patient is on {len(current_meds)} medications. "
-                "Check all new medications for interactions."
+                f"⚠️ MULTIPLE ACTIVE MATTERS: Client has {len(active_matters)} ongoing legal matters. "
+                "Consider potential conflicts or interactions between cases."
             )
 
         return "\n".join(warnings) if warnings else ""
 
-    def _parse_treatment_output(self, response: str) -> Dict[str, Any]:
-        """Parse treatment plan from response"""
+    def _parse_guidance_output(self, response: str) -> Dict[str, Any]:
+        """Parse legal guidance from response"""
         import re
 
         result = {
-            "first_line_treatments": [],
-            "non_pharmacological": [],
-            "drug_warnings": [],
-            "alternative_options": [],
-            "lifestyle_recommendations": [],
-            "patient_education": "",
-            "monitoring_plan": "",
-            "red_flags": ""
+            "legal_options": [],
+            "adr_options": [],
+            "jurisdictional_requirements": "",
+            "procedural_deadlines": "",
+            "alternative_strategies": [],
+            "recommended_next_steps": [],
+            "important_considerations": "",
+            "timeline_considerations": "",
+            "warnings": ""
         }
 
         # Extract sections
-        result["patient_education"] = self._extract_section(response, "PATIENT_EDUCATION")
-        result["monitoring_plan"] = self._extract_section(response, "MONITORING_PLAN")
-        result["red_flags"] = self._extract_section(response, "WHEN_TO_SEEK_IMMEDIATE_CARE")
+        result["important_considerations"] = self._extract_section(response, "CLIENT_EDUCATION")
+        result["timeline_considerations"] = self._extract_section(response, "TIMELINE_CONSIDERATIONS")
+        result["warnings"] = self._extract_section(response, "IMPORTANT_WARNINGS")
+        result["jurisdictional_requirements"] = self._extract_section(response, "JURISDICTIONAL_REQUIREMENTS")
+        result["procedural_deadlines"] = self._extract_section(response, "PROCEDURAL_DEADLINES")
 
         # Extract lists
-        non_pharm = self._extract_section(response, "NON_PHARMACOLOGICAL_INTERVENTIONS")
-        if non_pharm:
-            result["non_pharmacological"] = [
+        adr = self._extract_section(response, "ALTERNATIVE_DISPUTE_RESOLUTION")
+        if adr:
+            result["adr_options"] = [
                 line.strip('- ').strip()
-                for line in non_pharm.split('\n')
+                for line in adr.split('\n')
                 if line.strip().startswith('-')
             ]
 
-        lifestyle = self._extract_section(response, "LIFESTYLE_RECOMMENDATIONS")
-        if lifestyle:
-            result["lifestyle_recommendations"] = [
+        next_steps = self._extract_section(response, "RECOMMENDED_NEXT_STEPS")
+        if next_steps:
+            result["recommended_next_steps"] = [
                 line.strip('- ').strip()
-                for line in lifestyle.split('\n')
+                for line in next_steps.split('\n')
                 if line.strip().startswith('-')
             ]
 
-        warnings = self._extract_section(response, "DRUG_INTERACTION_WARNINGS")
-        if warnings:
-            result["drug_warnings"] = [w.strip() for w in warnings.split('\n') if w.strip()]
+        alternative = self._extract_section(response, "ALTERNATIVE_STRATEGIES")
+        if alternative:
+            result["alternative_strategies"] = [
+                line.strip('- ').strip()
+                for line in alternative.split('\n')
+                if line.strip().startswith('-')
+            ]
+
+        # Extract primary options
+        primary = self._extract_section(response, "PRIMARY_LEGAL_OPTIONS")
+        if primary:
+            result["legal_options"] = self._parse_legal_options(primary)
 
         return result
+
+    def _parse_legal_options(self, options_text: str) -> List[str]:
+        """Parse legal options from text"""
+        import re
+        options = []
+
+        # Split by numbered items
+        items = re.split(r'\n\d+\.', options_text)
+        for item in items:
+            if item.strip():
+                # Extract just the main option description (first line)
+                lines = item.strip().split('\n')
+                if lines:
+                    option_desc = lines[0].strip()
+                    if option_desc:
+                        options.append(option_desc)
+
+        return options
 
     def _extract_section(self, text: str, section_name: str) -> str:
         """Extract section from response"""

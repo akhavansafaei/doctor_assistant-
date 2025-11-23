@@ -2,23 +2,23 @@
 from typing import Dict, Any, List, Optional, TypedDict, Annotated
 import operator
 from langgraph.graph import StateGraph, END
-from .triage_agent import TriageAgent
-from .diagnostic_agent import DiagnosticAgent
-from .treatment_agent import TreatmentAgent
+from .triage_agent import IntakeAgent
+from .diagnostic_agent import LegalAnalysisAgent
+from .treatment_agent import LegalAdviceAgent
 
 
 class AgentState(TypedDict):
     """State that flows through the agent graph"""
     # Input
     message: str
-    patient_profile: Dict[str, Any]
+    client_profile: Dict[str, Any]
     conversation_history: List[Dict[str, str]]
 
     # Memory context
     long_term_memory: Optional[str]  # Formatted memory from past conversations
     memory_summary: Optional[Dict[str, Any]]  # Memory statistics
 
-    # Language context (NEW)
+    # Language context
     language: Optional[str]  # Detected language code ("en" or "fa")
 
     # State management
@@ -27,14 +27,14 @@ class AgentState(TypedDict):
     iteration: int
 
     # Outputs from agents
-    triage_result: Optional[Dict[str, Any]]
-    diagnostic_result: Optional[Dict[str, Any]]
-    treatment_result: Optional[Dict[str, Any]]
+    intake_result: Optional[Dict[str, Any]]
+    legal_analysis_result: Optional[Dict[str, Any]]
+    legal_advice_result: Optional[Dict[str, Any]]
 
     # Final response
     final_response: str
-    severity: str
-    emergency_detected: bool
+    urgency: str
+    urgent_matter_detected: bool
     sources: List[Dict[str, Any]]
 
     # Metadata
@@ -46,17 +46,17 @@ class AgentOrchestrator:
     Orchestrates multi-agent workflow using LangGraph
 
     Workflow:
-    1. User message → Triage Agent (assess severity)
-    2. If emergency → Emergency response
-    3. If non-emergency → Diagnostic Agent (differential diagnosis)
-    4. Diagnostic Agent → Treatment Agent (treatment options)
+    1. User inquiry → Intake Agent (assess urgency)
+    2. If critical urgent → Urgent response
+    3. If non-urgent → Legal Analysis Agent (identify legal issues)
+    4. Legal Analysis Agent → Legal Advice Agent (provide guidance)
     5. Compile final response
     """
 
     def __init__(self):
-        self.triage_agent = TriageAgent()
-        self.diagnostic_agent = DiagnosticAgent()
-        self.treatment_agent = TreatmentAgent()
+        self.intake_agent = IntakeAgent()
+        self.legal_analysis_agent = LegalAnalysisAgent()
+        self.legal_advice_agent = LegalAdviceAgent()
 
         # Build the agent graph
         self.graph = self._build_graph()
@@ -66,42 +66,42 @@ class AgentOrchestrator:
         workflow = StateGraph(AgentState)
 
         # Add nodes (agents)
-        workflow.add_node("triage", self._run_triage)
-        workflow.add_node("diagnostic", self._run_diagnostic)
-        workflow.add_node("treatment", self._run_treatment)
+        workflow.add_node("intake", self._run_intake)
+        workflow.add_node("legal_analysis", self._run_legal_analysis)
+        workflow.add_node("legal_advice", self._run_legal_advice)
         workflow.add_node("compile_response", self._compile_response)
 
         # Define edges (workflow logic)
-        workflow.set_entry_point("triage")
+        workflow.set_entry_point("intake")
 
-        # After triage, route based on severity
+        # After intake, route based on urgency
         workflow.add_conditional_edges(
-            "triage",
-            self._route_after_triage,
+            "intake",
+            self._route_after_intake,
             {
-                "emergency": "compile_response",
-                "diagnostic": "diagnostic",
+                "critical_urgent": "compile_response",
+                "legal_analysis": "legal_analysis",
                 "end": END
             }
         )
 
-        # After diagnostic, go to treatment
-        workflow.add_edge("diagnostic", "treatment")
+        # After legal analysis, go to legal advice
+        workflow.add_edge("legal_analysis", "legal_advice")
 
-        # After treatment, compile final response
-        workflow.add_edge("treatment", "compile_response")
+        # After legal advice, compile final response
+        workflow.add_edge("legal_advice", "compile_response")
 
         # After compiling, end
         workflow.add_edge("compile_response", END)
 
         return workflow.compile()
 
-    async def _run_triage(self, state: AgentState) -> AgentState:
-        """Run triage agent"""
-        triage_result = await self.triage_agent.process(
+    async def _run_intake(self, state: AgentState) -> AgentState:
+        """Run intake agent"""
+        intake_result = await self.intake_agent.process(
             input_data={
                 "message": state["message"],
-                "patient_profile": state.get("patient_profile", {})
+                "client_profile": state.get("client_profile", {})
             },
             context={
                 "conversation_history": state.get("conversation_history", []),
@@ -109,160 +109,160 @@ class AgentOrchestrator:
             }
         )
 
-        state["triage_result"] = triage_result
-        state["current_agent"] = "triage"
-        state["severity"] = triage_result.get("severity", "MODERATE")
-        state["emergency_detected"] = triage_result.get("emergency_detected", False)
+        state["intake_result"] = intake_result
+        state["current_agent"] = "intake"
+        state["urgency"] = intake_result.get("urgency", "MODERATE")
+        state["urgent_matter_detected"] = intake_result.get("urgent_matter_detected", False)
         state["agent_history"] = [state["current_agent"]]
 
         return state
 
-    async def _run_diagnostic(self, state: AgentState) -> AgentState:
-        """Run diagnostic agent"""
-        diagnostic_result = await self.diagnostic_agent.process(
+    async def _run_legal_analysis(self, state: AgentState) -> AgentState:
+        """Run legal analysis agent"""
+        legal_analysis_result = await self.legal_analysis_agent.process(
             input_data={
                 "message": state["message"],
-                "symptoms": state["message"],
-                "patient_profile": state.get("patient_profile", {})
+                "situation": state["message"],
+                "client_profile": state.get("client_profile", {})
             },
             context={
                 "conversation_history": state.get("conversation_history", []),
-                "triage_result": state.get("triage_result", {}),
+                "intake_result": state.get("intake_result", {}),
                 "long_term_memory": state.get("long_term_memory", "")
             }
         )
 
-        state["diagnostic_result"] = diagnostic_result
-        state["current_agent"] = "diagnostic"
+        state["legal_analysis_result"] = legal_analysis_result
+        state["current_agent"] = "legal_analysis"
         state["agent_history"] = [state["current_agent"]]
 
         return state
 
-    async def _run_treatment(self, state: AgentState) -> AgentState:
-        """Run treatment agent"""
-        diagnostic_result = state.get("diagnostic_result", {})
+    async def _run_legal_advice(self, state: AgentState) -> AgentState:
+        """Run legal advice agent"""
+        legal_analysis_result = state.get("legal_analysis_result", {})
 
-        # Extract top diagnosis
-        differential_diagnoses = diagnostic_result.get("differential_diagnoses", [])
-        top_condition = ""
-        if differential_diagnoses:
-            top_condition = differential_diagnoses[0].get("condition", "")
+        # Extract top legal issue
+        legal_issues = legal_analysis_result.get("legal_issues_identified", [])
+        top_issue = ""
+        if legal_issues:
+            top_issue = legal_issues[0].get("issue", "")
 
-        treatment_result = await self.treatment_agent.process(
+        legal_advice_result = await self.legal_advice_agent.process(
             input_data={
-                "condition": top_condition or state["message"],
-                "patient_profile": state.get("patient_profile", {}),
-                "differential_diagnoses": differential_diagnoses
+                "legal_issue": top_issue or state["message"],
+                "client_profile": state.get("client_profile", {}),
+                "legal_issues_identified": legal_issues
             },
             context={
                 "conversation_history": state.get("conversation_history", []),
-                "diagnostic_result": diagnostic_result,
+                "legal_analysis_result": legal_analysis_result,
                 "long_term_memory": state.get("long_term_memory", "")
             }
         )
 
-        state["treatment_result"] = treatment_result
-        state["current_agent"] = "treatment"
+        state["legal_advice_result"] = legal_advice_result
+        state["current_agent"] = "legal_advice"
         state["agent_history"] = [state["current_agent"]]
 
         return state
 
-    def _route_after_triage(self, state: AgentState) -> str:
-        """Decide routing after triage"""
-        severity = state.get("severity", "MODERATE")
-        emergency = state.get("emergency_detected", False)
+    def _route_after_intake(self, state: AgentState) -> str:
+        """Decide routing after intake"""
+        urgency = state.get("urgency", "MODERATE")
+        urgent_matter = state.get("urgent_matter_detected", False)
 
-        if emergency or severity == "EMERGENCY":
-            # Skip to final response for emergencies
-            return "emergency"
-        elif severity == "INFO":
-            # For informational queries, skip diagnostic
+        if urgent_matter or urgency == "CRITICAL_URGENT":
+            # Skip to final response for critical urgent matters
+            return "critical_urgent"
+        elif urgency == "INFO":
+            # For informational queries, skip legal analysis
             return "end"
         else:
-            # Normal flow: go to diagnostic
-            return "diagnostic"
+            # Normal flow: go to legal analysis
+            return "legal_analysis"
 
     async def _compile_response(self, state: AgentState) -> AgentState:
         """Compile final response from all agent outputs"""
-        triage = state.get("triage_result", {})
-        diagnostic = state.get("diagnostic_result", {})
-        treatment = state.get("treatment_result", {})
+        intake = state.get("intake_result", {})
+        legal_analysis = state.get("legal_analysis_result", {})
+        legal_advice = state.get("legal_advice_result", {})
 
         # Build comprehensive response
         response_parts = []
 
-        # Severity and triage info
-        severity = state.get("severity", "MODERATE")
-        if state.get("emergency_detected", False):
-            response_parts.append("⚠️ EMERGENCY DETECTED ⚠️")
+        # Urgency and intake info
+        urgency = state.get("urgency", "MODERATE")
+        if state.get("urgent_matter_detected", False):
+            response_parts.append("⚠️ TIME-SENSITIVE LEGAL MATTER DETECTED ⚠️")
             response_parts.append(
-                triage.get("immediate_action", "SEEK IMMEDIATE MEDICAL ATTENTION")
+                intake.get("immediate_action", "CONSULT WITH AN ATTORNEY IMMEDIATELY")
             )
-            response_parts.append(f"\nReasoning: {triage.get('reasoning', '')}")
+            response_parts.append(f"\nReasoning: {intake.get('reasoning', '')}")
         else:
-            response_parts.append(f"Assessment Level: {severity}")
-            if triage.get("immediate_recommendations"):
-                response_parts.append(f"\n{triage['immediate_recommendations']}")
+            response_parts.append(f"Urgency Level: {urgency}")
+            if intake.get("immediate_recommendations"):
+                response_parts.append(f"\n{intake['immediate_recommendations']}")
 
-        # Diagnostic information
-        if diagnostic:
-            response_parts.append("\n\n## Possible Conditions (Differential Diagnosis)")
-            differential = diagnostic.get("differential_diagnoses", [])
+        # Legal analysis information
+        if legal_analysis:
+            response_parts.append("\n\n## Legal Issues Identified")
+            legal_issues = legal_analysis.get("legal_issues_identified", [])
 
-            if differential:
-                for i, dx in enumerate(differential[:3], 1):
-                    condition = dx.get("condition", "Unknown")
-                    likelihood = dx.get("likelihood", "")
-                    evidence = dx.get("supporting_evidence", "")
+            if legal_issues:
+                for i, issue in enumerate(legal_issues[:3], 1):
+                    issue_name = issue.get("issue", "Unknown")
+                    relevance = issue.get("relevance", "")
+                    authority = issue.get("supporting_authority", "")
 
-                    response_parts.append(f"\n{i}. **{condition}** ({likelihood} likelihood)")
-                    if evidence:
-                        response_parts.append(f"   - Supporting evidence: {evidence}")
+                    response_parts.append(f"\n{i}. **{issue_name}** ({relevance} relevance)")
+                    if authority:
+                        response_parts.append(f"   - Legal authority: {authority}")
 
             # Clarifying questions
-            questions = diagnostic.get("clarifying_questions", [])
+            questions = legal_analysis.get("clarifying_questions", [])
             if questions:
-                response_parts.append("\n\n## Questions to Help Narrow Diagnosis")
+                response_parts.append("\n\n## Information Needed")
                 for i, q in enumerate(questions[:5], 1):
                     response_parts.append(f"{i}. {q}")
 
-        # Treatment recommendations
-        if treatment:
-            response_parts.append("\n\n## Treatment Recommendations")
+        # Legal advice recommendations
+        if legal_advice:
+            response_parts.append("\n\n## Legal Guidance")
 
-            non_pharm = treatment.get("non_pharmacological", [])
-            if non_pharm:
-                response_parts.append("\n### Lifestyle & Self-Care Measures")
-                for item in non_pharm[:5]:
+            options = legal_advice.get("legal_options", [])
+            if options:
+                response_parts.append("\n### Available Legal Options")
+                for item in options[:5]:
                     response_parts.append(f"- {item}")
 
-            lifestyle = treatment.get("lifestyle_recommendations", [])
-            if lifestyle:
-                response_parts.append("\n### Lifestyle Recommendations")
-                for item in lifestyle[:5]:
+            next_steps = legal_advice.get("recommended_next_steps", [])
+            if next_steps:
+                response_parts.append("\n### Recommended Next Steps")
+                for item in next_steps[:5]:
                     response_parts.append(f"- {item}")
 
-            patient_ed = treatment.get("patient_education", "")
-            if patient_ed:
-                response_parts.append(f"\n### What You Should Know\n{patient_ed}")
+            considerations = legal_advice.get("important_considerations", "")
+            if considerations:
+                response_parts.append(f"\n### Important Considerations\n{considerations}")
 
-            monitoring = treatment.get("monitoring_plan", "")
-            if monitoring:
-                response_parts.append(f"\n### Monitoring & Follow-up\n{monitoring}")
+            timeline = legal_advice.get("timeline_considerations", "")
+            if timeline:
+                response_parts.append(f"\n### Timeline & Deadlines\n{timeline}")
 
-            red_flags = treatment.get("red_flags", "")
-            if red_flags:
-                response_parts.append(f"\n### ⚠️ Seek Immediate Care If:\n{red_flags}")
+            warnings = legal_advice.get("warnings", "")
+            if warnings:
+                response_parts.append(f"\n### ⚠️ Important Warnings:\n{warnings}")
 
-        # Specialist referral
-        if triage.get("specialist_referral"):
+        # Legal area referral
+        if intake.get("legal_area_referral"):
             response_parts.append(
-                f"\n\n## Recommended Specialist\n{triage['specialist_referral']}"
+                f"\n\n## Recommended Legal Practice Area\n{intake['legal_area_referral']}"
             )
 
         # Compile sources
         all_sources = []
-        for result in [triage, diagnostic, treatment]:
+        for result in [intake, legal_analysis, legal_advice]:
             if result and result.get("sources"):
                 all_sources.extend(result["sources"])
 
@@ -274,15 +274,15 @@ class AgentOrchestrator:
     async def run(
         self,
         message: str,
-        patient_profile: Optional[Dict[str, Any]] = None,
+        client_profile: Optional[Dict[str, Any]] = None,
         conversation_history: Optional[List[Dict[str, str]]] = None
     ) -> Dict[str, Any]:
         """
         Run the multi-agent workflow
 
         Args:
-            message: User's message/symptoms
-            patient_profile: Patient's health profile
+            message: User's inquiry/legal matter
+            client_profile: Client's legal profile
             conversation_history: Previous conversation messages
 
         Returns:
@@ -291,19 +291,22 @@ class AgentOrchestrator:
         # Initialize state
         initial_state: AgentState = {
             "message": message,
-            "patient_profile": patient_profile or {},
+            "client_profile": client_profile or {},
             "conversation_history": conversation_history or [],
             "current_agent": "",
-            "next_agent": "triage",
+            "next_agent": "intake",
             "iteration": 0,
-            "triage_result": None,
-            "diagnostic_result": None,
-            "treatment_result": None,
+            "intake_result": None,
+            "legal_analysis_result": None,
+            "legal_advice_result": None,
             "final_response": "",
-            "severity": "MODERATE",
-            "emergency_detected": False,
+            "urgency": "MODERATE",
+            "urgent_matter_detected": False,
             "sources": [],
-            "agent_history": []
+            "agent_history": [],
+            "long_term_memory": None,
+            "memory_summary": None,
+            "language": None
         }
 
         # Run the graph
@@ -312,15 +315,15 @@ class AgentOrchestrator:
         # Return structured output
         return {
             "response": final_state["final_response"],
-            "severity": final_state["severity"],
-            "emergency_detected": final_state["emergency_detected"],
+            "urgency": final_state["urgency"],
+            "urgent_matter_detected": final_state["urgent_matter_detected"],
             "sources": final_state["sources"],
-            "triage_result": final_state.get("triage_result"),
-            "diagnostic_result": final_state.get("diagnostic_result"),
-            "treatment_result": final_state.get("treatment_result"),
+            "intake_result": final_state.get("intake_result"),
+            "legal_analysis_result": final_state.get("legal_analysis_result"),
+            "legal_advice_result": final_state.get("legal_advice_result"),
             "agent_flow": final_state.get("agent_history", []),
             "metadata": {
                 "agents_used": list(set(final_state.get("agent_history", []))),
-                "severity_level": final_state["severity"]
+                "urgency_level": final_state["urgency"]
             }
         }
