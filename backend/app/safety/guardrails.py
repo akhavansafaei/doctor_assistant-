@@ -1,35 +1,35 @@
-"""AI Safety Guardrails for medical chatbot"""
+"""AI Safety Guardrails for legal chatbot"""
 from typing import Dict, Any, List, Optional
 import re
 
 
 class SafetyGuardrails:
     """
-    Implements safety guardrails for medical AI
-    - Validates LLM outputs for medical accuracy
+    Implements safety guardrails for legal AI
+    - Validates LLM outputs for legal accuracy
     - Prevents hallucinations
-    - Enforces medical disclaimers
+    - Enforces legal disclaimers
     - Blocks inappropriate responses
     """
 
     # Prohibited actions/claims
     PROHIBITED_PATTERNS = [
-        r"i\s+(?:can|will)\s+diagnose",
-        r"you\s+(?:definitely|certainly)\s+have",
-        r"this\s+is\s+(?:definitely|certainly)",
-        r"i\s+(?:can|will)\s+prescribe",
-        r"take\s+\d+\s+(?:mg|pills|tablets)",  # Specific dosing
-        r"(?:guaranteed|guarantee)\s+(?:cure|treatment)",
-        r"no\s+need\s+to\s+see\s+(?:a\s+)?doctor",
-        r"don't\s+(?:see|consult)\s+(?:a\s+)?doctor",
+        r"i\s+(?:can|will)\s+represent\s+you",
+        r"you\s+(?:definitely|certainly)\s+will\s+win",
+        r"this\s+is\s+(?:definitely|certainly)\s+legal\s+advice",
+        r"i\s+(?:can|will)\s+file\s+(?:your|a)\s+lawsuit",
+        r"(?:guaranteed|guarantee)\s+(?:outcome|victory|win)",
+        r"no\s+need\s+to\s+(?:hire|consult)\s+(?:a|an)\s+(?:attorney|lawyer)",
+        r"don't\s+(?:hire|consult)\s+(?:a|an)\s+(?:attorney|lawyer)",
+        r"you\s+don't\s+need\s+(?:a|an)\s+(?:attorney|lawyer)",
     ]
 
     # Required disclaimers
     REQUIRED_DISCLAIMERS = {
-        "general": "This information is for educational purposes only and is not a substitute for professional medical advice, diagnosis, or treatment. Always seek the advice of your physician or other qualified health provider with any questions you may have regarding a medical condition.",
-        "emergency": "If you are experiencing a medical emergency, call 911 or go to the nearest emergency room immediately.",
-        "not_diagnosis": "This is not a medical diagnosis. Only a qualified healthcare professional can diagnose your condition.",
-        "not_prescription": "This AI cannot prescribe medications. Consult with your doctor or pharmacist for prescription information."
+        "general": "This information is for informational and educational purposes only and does not constitute legal advice. The use of this AI assistant does not create an attorney-client relationship. For legal advice specific to your situation, please consult with a licensed attorney in your jurisdiction.",
+        "urgent": "If you are facing a time-sensitive legal matter with imminent deadlines, contact a licensed attorney immediately. Missing legal deadlines can result in loss of rights.",
+        "not_legal_advice": "This is informational guidance only and not legal advice. Only a licensed attorney can provide legal advice tailored to your specific situation.",
+        "no_attorney_client": "Use of this AI assistant does not create an attorney-client relationship. Confidential or privileged communications should only be shared with your attorney."
     }
 
     def __init__(self):
@@ -86,9 +86,9 @@ class SafetyGuardrails:
             for disclaimer in self.REQUIRED_DISCLAIMERS.values()
         )
 
-        # Add disclaimer if missing and response contains medical advice
+        # Add disclaimer if missing and response contains legal guidance
         modified_output = llm_output
-        if self._contains_medical_advice(llm_output) and not has_disclaimer:
+        if self._contains_legal_guidance(llm_output) and not has_disclaimer:
             modified_output = self._add_disclaimer(llm_output, context)
 
         # Check for hallucination indicators
@@ -98,7 +98,7 @@ class SafetyGuardrails:
 
         # Check for inappropriate certainty
         if self._has_inappropriate_certainty(llm_output):
-            violations.append("Inappropriate medical certainty detected")
+            violations.append("Inappropriate legal certainty detected")
 
         return {
             "safe": len(violations) == 0,
@@ -141,16 +141,16 @@ class SafetyGuardrails:
 
         return False
 
-    def _contains_medical_advice(self, text: str) -> bool:
-        """Check if text contains medical advice"""
-        medical_keywords = [
-            "treatment", "medication", "diagnosis", "symptoms",
-            "condition", "disease", "therapy", "prescription",
-            "doctor", "hospital", "medical"
+    def _contains_legal_guidance(self, text: str) -> bool:
+        """Check if text contains legal guidance"""
+        legal_keywords = [
+            "legal", "law", "attorney", "lawyer", "court", "case",
+            "statute", "regulation", "contract", "rights", "liability",
+            "jurisdiction", "lawsuit", "litigation"
         ]
 
         text_lower = text.lower()
-        keyword_count = sum(1 for keyword in medical_keywords if keyword in text_lower)
+        keyword_count = sum(1 for keyword in legal_keywords if keyword in text_lower)
 
         return keyword_count >= 2
 
@@ -160,55 +160,55 @@ class SafetyGuardrails:
         context: Optional[Dict[str, Any]] = None
     ) -> str:
         """Add appropriate disclaimer to output"""
-        disclaimers = ["\n\n---\n\n**Medical Disclaimer:**\n"]
+        disclaimers = ["\n\n---\n\n**Legal Disclaimer:**\n"]
 
         # Add general disclaimer
         disclaimers.append(self.REQUIRED_DISCLAIMERS["general"])
 
-        # Add emergency disclaimer if severity is high
-        if context and context.get("severity") in ["EMERGENCY", "URGENT"]:
-            disclaimers.append("\n\n" + self.REQUIRED_DISCLAIMERS["emergency"])
+        # Add urgent disclaimer if urgency is high
+        if context and context.get("urgency") in ["CRITICAL_URGENT", "URGENT"]:
+            disclaimers.append("\n\n" + self.REQUIRED_DISCLAIMERS["urgent"])
 
-        # Add not-diagnosis disclaimer
-        if "diagnos" in output.lower():
-            disclaimers.append("\n\n" + self.REQUIRED_DISCLAIMERS["not_diagnosis"])
+        # Add not-legal-advice disclaimer
+        if any(word in output.lower() for word in ["advice", "recommend", "should"]):
+            disclaimers.append("\n\n" + self.REQUIRED_DISCLAIMERS["not_legal_advice"])
 
-        # Add not-prescription disclaimer
-        if any(word in output.lower() for word in ["medication", "drug", "prescription"]):
-            disclaimers.append("\n\n" + self.REQUIRED_DISCLAIMERS["not_prescription"])
+        # Add no-attorney-client disclaimer if representation language detected
+        if any(word in output.lower() for word in ["represent", "client", "attorney-client"]):
+            disclaimers.append("\n\n" + self.REQUIRED_DISCLAIMERS["no_attorney_client"])
 
         return output + "".join(disclaimers)
 
     def _detect_hallucination(self, text: str) -> float:
         """
-        Detect potential hallucination in medical output
+        Detect potential hallucination in legal output
         Returns score 0-1 where 1 is highest risk
         """
         hallucination_indicators = 0
         total_checks = 0
 
-        # Check for overly specific medical claims without sources
+        # Check for overly specific legal claims without sources
         total_checks += 1
-        if re.search(r"\d+%\s+of\s+(?:patients|people)", text) and "study" not in text.lower():
+        if re.search(r"\d+%\s+of\s+(?:cases|courts)", text) and "study" not in text.lower():
             hallucination_indicators += 1
 
-        # Check for specific drug dosages without qualification
+        # Check for specific case citations without qualification
         total_checks += 1
-        if re.search(r"\d+\s*mg", text) and "typically" not in text.lower():
-            hallucination_indicators += 1
+        if re.search(r"v\.\s+[A-Z][a-z]+", text) and "typically" not in text.lower():
+            hallucination_indicators += 0.5
 
         # Check for absolute statements
         total_checks += 1
-        absolute_words = ["always", "never", "guaranteed", "certainly", "definitely"]
+        absolute_words = ["always", "never", "guaranteed", "certainly", "definitely", "will win"]
         if any(word in text.lower() for word in absolute_words):
             hallucination_indicators += 1
 
-        # Check for citations that don't exist
+        # Check for fake citations
         total_checks += 1
-        if re.search(r"\[\d+\]", text) or re.search(r"\(.*\s+et\s+al\..*\d{4}.*\)", text):
+        if re.search(r"\[\d+\]", text) or re.search(r"\d+\s+[A-Z][a-z\.]+\s+\d+", text):
             hallucination_indicators += 1
 
-        # Check for overly complex medical jargon without explanation
+        # Check for overly complex legal jargon without explanation
         total_checks += 1
         complex_terms = re.findall(r"\b[A-Z][a-z]+(?:[A-Z][a-z]+)+\b", text)
         if len(complex_terms) > 5:
@@ -217,12 +217,13 @@ class SafetyGuardrails:
         return min(hallucination_indicators / total_checks, 1.0)
 
     def _has_inappropriate_certainty(self, text: str) -> bool:
-        """Check for inappropriate medical certainty"""
+        """Check for inappropriate legal certainty"""
         certainty_patterns = [
-            r"you\s+(?:definitely|certainly)\s+(?:have|need|should)",
-            r"this\s+is\s+(?:definitely|certainly|absolutely)",
-            r"(?:guaranteed|100%)\s+(?:cure|effective)",
-            r"(?:will|must)\s+(?:cure|fix|heal)",
+            r"you\s+(?:definitely|certainly)\s+(?:will|should|must)\s+win",
+            r"this\s+is\s+(?:definitely|certainly|absolutely)\s+legal",
+            r"(?:guaranteed|100%)\s+(?:win|victory|success)",
+            r"(?:will|must)\s+(?:win|succeed|prevail)",
+            r"judge\s+will\s+(?:definitely|certainly|always)",
         ]
 
         for pattern in certainty_patterns:
@@ -249,11 +250,11 @@ class SafetyGuardrails:
                 self.violation_count[user_id] = 0
             self.violation_count[user_id] += 1
 
-    def get_medical_disclaimer(self, context: Optional[str] = None) -> str:
-        """Get appropriate medical disclaimer"""
+    def get_legal_disclaimer(self, context: Optional[str] = None) -> str:
+        """Get appropriate legal disclaimer"""
         base_disclaimer = self.REQUIRED_DISCLAIMERS["general"]
 
-        if context and "emergency" in context.lower():
-            return f"{base_disclaimer}\n\n{self.REQUIRED_DISCLAIMERS['emergency']}"
+        if context and "urgent" in context.lower():
+            return f"{base_disclaimer}\n\n{self.REQUIRED_DISCLAIMERS['urgent']}"
 
         return base_disclaimer

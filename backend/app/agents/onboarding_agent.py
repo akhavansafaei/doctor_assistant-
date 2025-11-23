@@ -1,4 +1,4 @@
-"""Onboarding agent for collecting patient health information through conversation"""
+"""Onboarding agent for collecting client legal information through conversation"""
 from typing import Dict, Any, Optional, List
 from .base_agent import BaseAgent
 import json
@@ -7,56 +7,56 @@ import re
 
 class OnboardingAgent(BaseAgent):
     """
-    Onboarding Agent - Collects patient health information conversationally
-    - Asks about basic info, medical history, medications, allergies
+    Onboarding Agent - Collects client legal information conversationally
+    - Asks about legal areas of interest, active matters, restrictions
     - Extracts structured data from natural language responses
-    - Fills health profile automatically
-    - Friendly, non-intrusive approach
+    - Fills client profile automatically
+    - Professional, non-intrusive approach
     """
 
     def __init__(self):
-        system_prompt = """You are a friendly medical assistant helping to collect a patient's health information for their profile.
+        system_prompt = """You are a professional legal intake assistant helping to collect a client's legal information for their profile.
 
 Your role is to:
-1. Ask questions ONE AT A TIME in a conversational, friendly manner
+1. Ask questions ONE AT A TIME in a conversational, professional manner
 2. Extract and structure the information from their responses
-3. Move through the health profile questions naturally
-4. Be understanding if they don't know or skip questions
+3. Move through the client profile questions naturally
+4. Be understanding if they prefer not to answer certain questions
 5. Make the process feel like a natural conversation, not an interrogation
 
-Health Information to Collect (in order):
-1. Basic Info: Age, Gender, Height, Weight, Blood Type (if known)
-2. Chronic Conditions: Do they have any ongoing health conditions? (diabetes, hypertension, asthma, etc.)
-3. Allergies: Drug allergies, food allergies, environmental allergies
-4. Current Medications: What medications are they currently taking?
-5. Past Surgeries: Any previous surgeries or major medical procedures?
-6. Lifestyle: Smoking status, alcohol consumption, exercise frequency
-7. Emergency Contact: Name, phone, relationship (optional but recommended)
+Client Information to Collect (in order):
+1. Basic Info: Occupation, Employer (if applicable), Citizenship/Jurisdiction
+2. Legal Areas of Interest: What areas of law are they interested in or seeking guidance on?
+3. Active Legal Matters: Do they have any ongoing legal cases or matters?
+4. Previous Legal Issues: Any past legal matters or cases?
+5. Legal Restrictions: Any court orders, probation, restraining orders, or legal restrictions?
+6. Business Entities: Do they own or have interest in any businesses?
+7. Financial Concerns: Any financial legal issues (bankruptcy, liens, debt collection, etc.)?
+8. Preferred Communication: How do they prefer to be contacted?
 
 IMPORTANT GUIDELINES:
 - Ask ONE question at a time
-- Be warm and conversational
-- Accept "none", "no", "I don't know" as valid answers
-- Don't make them feel uncomfortable
-- Explain WHY you're asking (helps provide better medical advice)
-- Allow them to skip questions they're not comfortable answering
+- Be professional and respectful
+- Accept "none", "no", "I prefer not to say" as valid answers
+- Maintain confidentiality and trust
+- Explain WHY you're asking (helps provide better legal guidance)
+- Allow them to skip sensitive questions
 - Summarize what you've collected before finishing
+- Remind them this is for informational purposes and not legal advice
 
 Example conversation flow:
-"Hi! To provide you with the most accurate health advice, I'd like to learn a bit about you. This will only take a minute and helps me give you personalized care. Is that okay?"
+"Hello! To provide you with the most relevant legal information and resources, I'd like to learn a bit about your situation. This will only take a few minutes and helps me guide you to the right legal resources. Shall we begin?"
 
-"Great! Let's start simple - how old are you?"
+"Great! Let's start with some basic information. What is your current occupation?"
 
-"Thanks! And what's your biological gender? This helps with gender-specific health considerations."
-
-"Perfect! Do you happen to know your height and weight? This helps assess various health metrics."
+"Thank you! And what legal areas are you most interested in or seeking guidance on? For example: family law, contract law, employment law, real estate, criminal law, etc."
 
 After collecting info, respond with a JSON object containing the extracted data.
 """
 
         super().__init__(
             name="Onboarding Agent",
-            description="Conversational health profile collection",
+            description="Conversational client profile collection",
             system_prompt=system_prompt,
             use_rag=False  # Don't need RAG for onboarding
         )
@@ -65,43 +65,53 @@ After collecting info, respond with a JSON object containing the extracted data.
         self.questions = [
             {
                 "field": "basic_info",
-                "question": "To provide you with personalized health advice, I'd like to know a bit about you. First, how old are you?",
-                "extract": ["age"]
+                "question": "To provide you with relevant legal information, I'd like to know a bit about you. First, what is your current occupation?",
+                "extract": ["occupation"]
             },
             {
                 "field": "basic_info",
-                "question": "Thanks! And what's your biological gender? This helps with gender-specific health considerations.",
-                "extract": ["gender"]
+                "question": "Thanks! And if you're employed, who is your employer? You can skip this if you prefer.",
+                "extract": ["employer"]
             },
             {
                 "field": "basic_info",
-                "question": "Do you know your height and current weight? This helps assess various health metrics.",
-                "extract": ["height_cm", "weight_kg"]
+                "question": "What is your citizenship or primary jurisdiction? This helps ensure we provide legally relevant information for your location.",
+                "extract": ["citizenship"]
             },
             {
-                "field": "chronic_conditions",
-                "question": "Do you have any ongoing health conditions or chronic illnesses? For example, diabetes, high blood pressure, asthma, etc. If none, just say 'none'.",
-                "extract": ["chronic_conditions"]
+                "field": "legal_areas",
+                "question": "What areas of law are you most interested in or seeking guidance on? For example: family law, employment law, contract law, real estate, criminal law, immigration, etc. Please list any that apply.",
+                "extract": ["legal_areas_of_interest"]
             },
             {
-                "field": "allergies",
-                "question": "Great! Now, do you have any allergies? This could be to medications, foods, or environmental things like pollen. Please list them or say 'none'.",
-                "extract": ["allergies"]
+                "field": "active_matters",
+                "question": "Do you currently have any active legal matters or ongoing cases? If yes, please briefly describe them. If none, just say 'none'.",
+                "extract": ["active_legal_matters"]
             },
             {
-                "field": "medications",
-                "question": "Are you currently taking any medications regularly? Please include prescription and over-the-counter medications, or say 'none'.",
-                "extract": ["current_medications"]
+                "field": "previous_issues",
+                "question": "Have you had any previous legal issues or cases in the past? If yes, please briefly mention the type and approximate timeframe.",
+                "extract": ["previous_legal_issues"]
             },
             {
-                "field": "surgeries",
-                "question": "Have you had any surgeries or major medical procedures in the past? If yes, please briefly mention them.",
-                "extract": ["past_surgeries"]
+                "field": "restrictions",
+                "question": "Do you have any current legal restrictions, such as court orders, probation, restraining orders, or similar? This is confidential and helps ensure accurate guidance.",
+                "extract": ["legal_restrictions"]
             },
             {
-                "field": "lifestyle",
-                "question": "A few lifestyle questions: Do you smoke? How often do you drink alcohol? And how frequently do you exercise?",
-                "extract": ["smoking_status", "alcohol_consumption", "exercise_frequency"]
+                "field": "business",
+                "question": "Do you own or have ownership interest in any business entities? If yes, please mention the business name and type (LLC, corporation, partnership, etc.).",
+                "extract": ["business_entities"]
+            },
+            {
+                "field": "financial",
+                "question": "Do you have any financial legal concerns, such as bankruptcy, tax liens, foreclosure, or debt collection issues? Please list any that apply or say 'none'.",
+                "extract": ["financial_concerns"]
+            },
+            {
+                "field": "communication",
+                "question": "Finally, how would you prefer to receive legal information and updates? For example: email, phone, text message, or in-person consultation.",
+                "extract": ["preferred_communication"]
             },
         ]
 
@@ -132,7 +142,7 @@ After collecting info, respond with a JSON object containing the extracted data.
         if current_index == 0 and not conversation_history:
             return {
                 "agent": self.name,
-                "next_question": "Hi! 👋 To provide you with the most accurate health advice, I'd like to learn a bit about you. This will only take a minute and helps me give you personalized care. Shall we begin?",
+                "next_question": "Hello! 👋 To provide you with the most relevant legal information and resources, I'd like to learn a bit about your situation. This will only take a few minutes and helps me guide you to the right legal resources. All information is confidential. Shall we begin?",
                 "onboarding_complete": False,
                 "current_question": 0,
                 "collected_data": collected_data
@@ -153,7 +163,7 @@ After collecting info, respond with a JSON object containing the extracted data.
                 "onboarding_complete": True,
                 "collected_data": collected_data,
                 "summary": self._create_summary(collected_data),
-                "completion_message": "Perfect! Thank you for sharing that information. I now have a good understanding of your health profile, which will help me provide more personalized and accurate advice. How can I help you today? 😊"
+                "completion_message": "Perfect! Thank you for sharing that information. I now have a good understanding of your legal situation, which will help me provide more relevant legal information and resources. Remember, this is for informational purposes only and does not constitute legal advice. How can I assist you today? 😊"
             }
 
         # Ask next question
@@ -183,8 +193,8 @@ After collecting info, respond with a JSON object containing the extracted data.
         Returns:
             Structured data dictionary
         """
-        extraction_prompt = f"""Extract the following health information from the user's response.
-If information is not mentioned or user says "none"/"no", return null for that field.
+        extraction_prompt = f"""Extract the following client information from the user's response.
+If information is not mentioned or user says "none"/"no"/"prefer not to say", return null for that field.
 
 Response: "{response}"
 
@@ -192,14 +202,16 @@ Extract these fields: {', '.join(fields)}
 
 Return ONLY a JSON object with these exact field names. Examples:
 
-For age: {{"age": 35}}
-For gender: {{"gender": "male"}} or {{"gender": "female"}}
-For height/weight: {{"height_cm": 175, "weight_kg": 70}}
-For chronic conditions: {{"chronic_conditions": ["diabetes", "hypertension"]}} or {{"chronic_conditions": []}}
-For allergies: {{"allergies": {{"drug": ["penicillin"], "food": ["peanuts"], "environmental": []}}}}
-For medications: {{"current_medications": [{{"name": "Metformin", "dose": "500mg twice daily"}}]}}
-For surgeries: {{"past_surgeries": [{{"name": "Appendectomy", "date": "2015"}}]}}
-For lifestyle: {{"smoking_status": "never", "alcohol_consumption": "occasionally", "exercise_frequency": "3 times per week"}}
+For occupation: {{"occupation": "Software Engineer"}}
+For employer: {{"employer": "Tech Corp"}} or {{"employer": null}}
+For citizenship: {{"citizenship": "United States"}}
+For legal areas: {{"legal_areas_of_interest": ["family law", "employment law"]}}
+For active matters: {{"active_legal_matters": [{{"description": "custody dispute", "status": "ongoing"}}]}} or {{"active_legal_matters": []}}
+For previous issues: {{"previous_legal_issues": [{{"type": "contract dispute", "year": "2020"}}]}}
+For restrictions: {{"legal_restrictions": [{{"type": "probation", "details": "expires 2025"}}]}} or {{"legal_restrictions": []}}
+For business entities: {{"business_entities": [{{"name": "ABC LLC", "type": "LLC", "ownership_percentage": 50}}]}}
+For financial concerns: {{"financial_concerns": ["bankruptcy consideration", "tax lien"]}} or {{"financial_concerns": []}}
+For communication: {{"preferred_communication": "email"}}
 
 Return ONLY the JSON, no explanation."""
 
@@ -218,95 +230,97 @@ Return ONLY the JSON, no explanation."""
             return {}
 
     def _create_summary(self, collected_data: Dict[str, Any]) -> str:
-        """Create a friendly summary of collected information"""
+        """Create a professional summary of collected information"""
         summary_parts = []
 
-        if collected_data.get("age"):
-            summary_parts.append(f"Age: {collected_data['age']}")
+        if collected_data.get("occupation"):
+            summary_parts.append(f"Occupation: {collected_data['occupation']}")
 
-        if collected_data.get("chronic_conditions"):
-            conditions = collected_data["chronic_conditions"]
-            if conditions:
-                summary_parts.append(f"Chronic conditions: {', '.join(conditions)}")
+        if collected_data.get("legal_areas_of_interest"):
+            areas = collected_data["legal_areas_of_interest"]
+            if areas:
+                summary_parts.append(f"Legal interests: {', '.join(areas)}")
 
-        if collected_data.get("current_medications"):
-            meds = [m.get("name", "") for m in collected_data.get("current_medications", [])]
-            if meds:
-                summary_parts.append(f"Medications: {', '.join(meds)}")
+        if collected_data.get("active_legal_matters"):
+            matters = [m.get("description", "") for m in collected_data.get("active_legal_matters", [])]
+            if matters:
+                summary_parts.append(f"Active matters: {', '.join(matters)}")
 
-        if collected_data.get("allergies"):
-            allergies = collected_data["allergies"]
-            all_allergies = []
-            for category, items in allergies.items():
-                if items:
-                    all_allergies.extend(items)
-            if all_allergies:
-                summary_parts.append(f"Allergies: {', '.join(all_allergies)}")
+        if collected_data.get("business_entities"):
+            entities = [e.get("name", "") for e in collected_data.get("business_entities", [])]
+            if entities:
+                summary_parts.append(f"Business entities: {', '.join(entities)}")
+
+        if collected_data.get("legal_restrictions"):
+            restrictions = [r.get("type", "") for r in collected_data.get("legal_restrictions", [])]
+            if restrictions:
+                summary_parts.append(f"Restrictions: {', '.join(restrictions)}")
 
         return " | ".join(summary_parts) if summary_parts else "Basic profile created"
 
 
 class ProfileCompletionChecker:
-    """Check if health profile is complete enough to skip onboarding"""
+    """Check if client profile is complete enough to skip onboarding"""
 
     REQUIRED_FIELDS = [
-        "age",
-        "chronic_conditions",  # Can be empty list
-        "allergies",  # Can be empty dict
+        "legal_areas_of_interest",  # Can be empty list
+        "active_legal_matters",  # Can be empty list
     ]
 
     OPTIONAL_FIELDS = [
-        "height_cm",
-        "weight_kg",
-        "current_medications",
-        "smoking_status",
+        "occupation",
+        "citizenship",
+        "previous_legal_issues",
+        "legal_restrictions",
+        "business_entities",
+        "financial_concerns",
     ]
 
     @staticmethod
-    def is_profile_complete(health_profile: Optional[Dict[str, Any]]) -> bool:
+    def is_profile_complete(client_profile: Optional[Dict[str, Any]]) -> bool:
         """
         Check if profile has minimum required information
 
         Args:
-            health_profile: Health profile data
+            client_profile: Client profile data
 
         Returns:
             True if profile is complete enough
         """
-        if not health_profile:
+        if not client_profile:
             return False
 
         # Check required fields exist (can be None/empty for some)
         for field in ProfileCompletionChecker.REQUIRED_FIELDS:
-            if field not in health_profile:
+            if field not in client_profile:
                 return False
 
-        # If we have age and at least checked allergies/conditions, it's complete
-        if health_profile.get("age") is not None:
+        # If we have legal areas of interest, profile is minimally complete
+        if client_profile.get("legal_areas_of_interest") is not None:
             return True
 
         return False
 
     @staticmethod
-    def get_completion_percentage(health_profile: Optional[Dict[str, Any]]) -> int:
+    def get_completion_percentage(client_profile: Optional[Dict[str, Any]]) -> int:
         """Get profile completion percentage"""
-        if not health_profile:
+        if not client_profile:
             return 0
 
         all_fields = ProfileCompletionChecker.REQUIRED_FIELDS + ProfileCompletionChecker.OPTIONAL_FIELDS
-        filled_fields = sum(1 for field in all_fields if health_profile.get(field) is not None)
+        filled_fields = sum(1 for field in all_fields if client_profile.get(field) is not None)
 
         return int((filled_fields / len(all_fields)) * 100)
 
     @staticmethod
-    def get_missing_fields(health_profile: Optional[Dict[str, Any]]) -> List[str]:
+    def get_missing_fields(client_profile: Optional[Dict[str, Any]]) -> List[str]:
         """Get list of missing important fields"""
-        if not health_profile:
+        if not client_profile:
             return ProfileCompletionChecker.REQUIRED_FIELDS + ProfileCompletionChecker.OPTIONAL_FIELDS
 
         missing = []
         for field in ProfileCompletionChecker.REQUIRED_FIELDS:
-            if field not in health_profile or health_profile.get(field) is None:
+            if field not in client_profile or client_profile.get(field) is None:
                 missing.append(field)
 
         return missing

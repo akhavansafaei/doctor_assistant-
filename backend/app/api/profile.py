@@ -1,13 +1,13 @@
-"""Health profile API endpoints"""
+"""Client profile API endpoints"""
 from fastapi import APIRouter, Depends, HTTPException, status
 from typing import List
 
 from app.schemas.user import (
-    HealthProfileCreate,
-    HealthProfileResponse,
-    HealthProfileUpdate,
-    MedicalHistoryCreate,
-    MedicalHistoryResponse
+    ClientProfileCreate,
+    ClientProfileResponse,
+    ClientProfileUpdate,
+    CaseHistoryCreate,
+    CaseHistoryResponse
 )
 from app.api.auth import oauth2_scheme
 from datetime import datetime
@@ -15,20 +15,20 @@ from datetime import datetime
 router = APIRouter()
 
 # In-memory storage (replace with database)
-health_profiles_db = {}
-medical_history_db = {}
+client_profiles_db = {}
+case_history_db = {}
 
 
-@router.post("/health-profile", response_model=HealthProfileResponse, status_code=status.HTTP_201_CREATED)
-async def create_health_profile(
-    profile: HealthProfileCreate,
+@router.post("/client-profile", response_model=ClientProfileResponse, status_code=status.HTTP_201_CREATED)
+async def create_client_profile(
+    profile: ClientProfileCreate,
     token: str = Depends(oauth2_scheme)
 ):
-    """Create or update health profile"""
+    """Create or update client profile"""
     # In production, get user_id from token
     user_id = 1  # Placeholder
 
-    profile_id = len(health_profiles_db) + 1
+    profile_id = len(client_profiles_db) + 1
 
     profile_data = {
         "id": profile_id,
@@ -38,50 +38,50 @@ async def create_health_profile(
         "updated_at": datetime.utcnow()
     }
 
-    health_profiles_db[profile_id] = profile_data
+    client_profiles_db[profile_id] = profile_data
 
-    return HealthProfileResponse(**profile_data)
+    return ClientProfileResponse(**profile_data)
 
 
-@router.get("/health-profile", response_model=HealthProfileResponse)
-async def get_health_profile(token: str = Depends(oauth2_scheme)):
-    """Get user's health profile"""
+@router.get("/client-profile", response_model=ClientProfileResponse)
+async def get_client_profile(token: str = Depends(oauth2_scheme)):
+    """Get user's client profile"""
     # In production, get user_id from token
     user_id = 1
 
     # Find profile for user
     profile = next(
-        (p for p in health_profiles_db.values() if p["user_id"] == user_id),
+        (p for p in client_profiles_db.values() if p["user_id"] == user_id),
         None
     )
 
     if not profile:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Health profile not found"
+            detail="Client profile not found"
         )
 
-    return HealthProfileResponse(**profile)
+    return ClientProfileResponse(**profile)
 
 
-@router.put("/health-profile", response_model=HealthProfileResponse)
-async def update_health_profile(
-    update_data: HealthProfileUpdate,
+@router.put("/client-profile", response_model=ClientProfileResponse)
+async def update_client_profile(
+    update_data: ClientProfileUpdate,
     token: str = Depends(oauth2_scheme)
 ):
-    """Update health profile"""
+    """Update client profile"""
     user_id = 1  # Placeholder
 
     # Find existing profile
     profile = next(
-        (p for p in health_profiles_db.values() if p["user_id"] == user_id),
+        (p for p in client_profiles_db.values() if p["user_id"] == user_id),
         None
     )
 
     if not profile:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Health profile not found"
+            detail="Client profile not found"
         )
 
     # Update fields
@@ -92,18 +92,18 @@ async def update_health_profile(
 
     profile["updated_at"] = datetime.utcnow()
 
-    return HealthProfileResponse(**profile)
+    return ClientProfileResponse(**profile)
 
 
-@router.post("/medical-history", response_model=MedicalHistoryResponse, status_code=status.HTTP_201_CREATED)
-async def add_medical_history(
-    record: MedicalHistoryCreate,
+@router.post("/case-history", response_model=CaseHistoryResponse, status_code=status.HTTP_201_CREATED)
+async def add_case_history(
+    record: CaseHistoryCreate,
     token: str = Depends(oauth2_scheme)
 ):
-    """Add medical history record"""
+    """Add case history record"""
     user_id = 1  # Placeholder
 
-    record_id = len(medical_history_db) + 1
+    record_id = len(case_history_db) + 1
 
     record_data = {
         "id": record_id,
@@ -112,19 +112,19 @@ async def add_medical_history(
         "created_at": datetime.utcnow()
     }
 
-    medical_history_db[record_id] = record_data
+    case_history_db[record_id] = record_data
 
-    return MedicalHistoryResponse(**record_data)
+    return CaseHistoryResponse(**record_data)
 
 
-@router.get("/medical-history", response_model=List[MedicalHistoryResponse])
-async def get_medical_history(token: str = Depends(oauth2_scheme)):
-    """Get user's medical history"""
+@router.get("/case-history", response_model=List[CaseHistoryResponse])
+async def get_case_history(token: str = Depends(oauth2_scheme)):
+    """Get user's case history"""
     user_id = 1  # Placeholder
 
     records = [
-        MedicalHistoryResponse(**record)
-        for record in medical_history_db.values()
+        CaseHistoryResponse(**record)
+        for record in case_history_db.values()
         if record["user_id"] == user_id
     ]
 
@@ -132,13 +132,13 @@ async def get_medical_history(token: str = Depends(oauth2_scheme)):
 
 
 @router.get("/timeline")
-async def get_health_timeline(token: str = Depends(oauth2_scheme)):
-    """Get health timeline visualization data"""
+async def get_case_timeline(token: str = Depends(oauth2_scheme)):
+    """Get case timeline visualization data"""
     user_id = 1  # Placeholder
 
-    # Get all medical records sorted by date
+    # Get all case records sorted by date
     records = sorted(
-        [r for r in medical_history_db.values() if r["user_id"] == user_id],
+        [r for r in case_history_db.values() if r["user_id"] == user_id],
         key=lambda x: x["record_date"],
         reverse=True
     )
@@ -148,11 +148,12 @@ async def get_health_timeline(token: str = Depends(oauth2_scheme)):
         timeline.append({
             "date": record["record_date"].isoformat(),
             "type": record["record_type"],
-            "title": record.get("diagnosis_name", "Medical Event"),
+            "title": record.get("case_number", "Legal Event"),
             "description": record.get("notes", ""),
             "details": {
-                "diagnosis_code": record.get("diagnosis_code"),
-                "prescribed_by": record.get("prescribed_by")
+                "case_type": record.get("case_type"),
+                "jurisdiction": record.get("jurisdiction"),
+                "handled_by": record.get("handled_by")
             }
         })
 

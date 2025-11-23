@@ -9,7 +9,7 @@ from app.schemas.chat import (
     ConversationResponse, VoiceRequest, ImageAnalysisRequest
 )
 from app.agents import AgentOrchestrator
-from app.safety import SafetyGuardrails, EmergencyDetector, ComplianceManager
+from app.safety import SafetyGuardrails, UrgencyDetector, ComplianceManager
 from app.core.config import settings
 
 router = APIRouter()
@@ -17,7 +17,7 @@ router = APIRouter()
 # Initialize services
 agent_orchestrator = AgentOrchestrator()
 safety_guardrails = SafetyGuardrails()
-emergency_detector = EmergencyDetector()
+urgency_detector = UrgencyDetector()
 compliance_manager = ComplianceManager()
 
 # In-memory storage for demo (replace with database in production)
@@ -28,12 +28,12 @@ messages_db = {}
 @router.post("/message", response_model=ChatResponse)
 async def send_message(request: ChatRequest):
     """
-    Send a message to the AI doctor chatbot
+    Send a message to the AI law assistant chatbot
 
     This endpoint orchestrates the full multi-agent workflow:
     1. Safety validation
-    2. Emergency detection
-    3. Agent orchestration (Triage → Diagnostic → Treatment)
+    2. Urgency detection
+    3. Agent orchestration (Intake → Legal Analysis → Legal Advice)
     4. Response compilation with sources
     """
     try:
@@ -46,29 +46,29 @@ async def send_message(request: ChatRequest):
                 detail=f"Input validation failed: {', '.join(input_validation['issues'])}"
             )
 
-        # Quick emergency detection
-        emergency_check = emergency_detector.detect(request.message)
+        # Quick urgency detection
+        urgency_check = urgency_detector.detect(request.message)
 
-        # If emergency, return immediate response
-        if emergency_check["is_emergency"]:
-            emergency_response = f"""
-🚨 **EMERGENCY DETECTED** 🚨
+        # If critical urgent matter, return immediate response
+        if urgency_check["is_urgent"]:
+            urgent_response = f"""
+⚠️ **TIME-SENSITIVE LEGAL MATTER DETECTED** ⚠️
 
-{emergency_check["immediate_action"]}
+{urgency_check["immediate_action"]}
 
-**Emergency Contacts:**
+**Urgent Legal Resources:**
 """
-            for name, number in emergency_check.get("emergency_contacts", {}).items():
-                emergency_response += f"\n• {name}: {number}"
+            for name, contact in urgency_check.get("urgent_contacts", {}).items():
+                urgent_response += f"\n• {name}: {contact}"
 
-            emergency_response += "\n\n" + safety_guardrails.get_medical_disclaimer("emergency")
+            urgent_response += "\n\n" + safety_guardrails.get_legal_disclaimer("urgent")
 
             return ChatResponse(
                 session_id=request.session_id or str(uuid.uuid4()),
-                message=emergency_response,
-                agent_type="emergency_detector",
-                severity_level="EMERGENCY",
-                emergency_detected=True,
+                message=urgent_response,
+                agent_type="urgency_detector",
+                urgency_level="CRITICAL_URGENT",
+                urgent_matter_detected=True,
                 timestamp=datetime.utcnow()
             )
 
@@ -80,30 +80,30 @@ async def send_message(request: ChatRequest):
 
         # Run multi-agent orchestration
         if request.enable_agents:
-            # Get patient profile (in production, fetch from database)
-            patient_profile = request.context.get("patient_profile", {}) if request.context else {}
+            # Get client profile (in production, fetch from database)
+            client_profile = request.context.get("client_profile", {}) if request.context else {}
 
             # Run agent orchestrator
             agent_result = await agent_orchestrator.run(
                 message=request.message,
-                patient_profile=patient_profile,
+                client_profile=client_profile,
                 conversation_history=conversation_history
             )
 
             response_text = agent_result["response"]
-            severity = agent_result["severity"]
+            urgency = agent_result["urgency"]
             sources = agent_result["sources"] if request.include_sources else []
 
         else:
             # Simple mode without agents (fallback)
             response_text = "Agent system is disabled. Please enable agents for full functionality."
-            severity = "INFO"
+            urgency = "INFO"
             sources = []
 
         # Validate output with safety guardrails
         output_validation = await safety_guardrails.validate_output(
             response_text,
-            context={"severity": severity}
+            context={"urgency": urgency}
         )
 
         if not output_validation["safe"]:
@@ -137,7 +137,7 @@ async def send_message(request: ChatRequest):
             details={
                 "session_id": session_id,
                 "message_length": len(request.message),
-                "severity": severity,
+                "urgency": urgency,
                 "agents_used": request.enable_agents
             }
         )
@@ -146,8 +146,8 @@ async def send_message(request: ChatRequest):
             session_id=session_id,
             message=final_response,
             agent_type="multi_agent" if request.enable_agents else "simple",
-            severity_level=severity,
-            emergency_detected=False,
+            urgency_level=urgency,
+            urgent_matter_detected=False,
             sources=sources if request.include_sources else None,
             timestamp=datetime.utcnow()
         )
@@ -204,26 +204,26 @@ async def process_voice_input(request: VoiceRequest):
 @router.post("/image")
 async def analyze_image(request: ImageAnalysisRequest):
     """
-    Analyze medical images (skin conditions, lab reports, etc.)
+    Analyze legal documents (contracts, forms, evidence, etc.)
 
-    In production, integrate with GPT-4V or medical imaging AI
+    In production, integrate with GPT-4V or document analysis AI
     """
     # Placeholder for image analysis
     return {
-        "message": "Image analysis not yet implemented",
+        "message": "Document analysis not yet implemented",
         "session_id": request.session_id,
         "image_type": request.image_type
     }
 
 
-@router.get("/emergency-check")
-async def check_emergency(message: str):
-    """Quick emergency condition check"""
-    result = emergency_detector.detect(message)
+@router.get("/urgency-check")
+async def check_urgency(message: str):
+    """Quick urgency level check for legal matters"""
+    result = urgency_detector.detect(message)
 
     return {
-        "is_emergency": result["is_emergency"],
-        "severity": result["severity"],
+        "is_urgent": result["is_urgent"],
+        "urgency": result["urgency"],
         "immediate_action": result.get("immediate_action"),
-        "emergency_contacts": result.get("emergency_contacts", {})
+        "urgent_contacts": result.get("urgent_contacts", {})
     }
