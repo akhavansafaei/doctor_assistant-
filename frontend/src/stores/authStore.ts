@@ -1,10 +1,10 @@
 import { create } from 'zustand';
-import { User, LoginCredentials, RegisterData, HealthProfile } from '@/types';
+import { User, LoginCredentials, RegisterData, ClientProfile } from '@/types';
 import api from '@/services/api';
 
 interface AuthState {
   user: User | null;
-  healthProfile: HealthProfile | null;
+  clientProfile: ClientProfile | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
@@ -14,14 +14,14 @@ interface AuthState {
   register: (data: RegisterData) => Promise<void>;
   logout: () => Promise<void>;
   loadUser: () => Promise<void>;
-  loadHealthProfile: () => Promise<void>;
-  updateHealthProfile: (data: Partial<HealthProfile>) => Promise<void>;
+  loadClientProfile: () => Promise<void>;
+  updateClientProfile: (data: Partial<ClientProfile>) => Promise<void>;
   clearError: () => void;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
-  healthProfile: null,
+  clientProfile: null,
   isAuthenticated: false,
   isLoading: false,
   error: null,
@@ -61,7 +61,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       await api.logout();
       set({
         user: null,
-        healthProfile: null,
+        clientProfile: null,
         isAuthenticated: false,
         error: null,
       });
@@ -81,8 +81,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const user = await api.getCurrentUser();
       set({ user, isAuthenticated: true });
 
-      // Load health profile
-      await get().loadHealthProfile();
+      // Load client profile
+      await get().loadClientProfile();
     } catch (error) {
       console.error('Load user error:', error);
       set({ isAuthenticated: false });
@@ -91,29 +91,29 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  loadHealthProfile: async () => {
+  loadClientProfile: async () => {
     try {
-      const healthProfile = await api.getHealthProfile();
-      set({ healthProfile });
+      const clientProfile = await api.getClientProfile();
+      set({ clientProfile });
     } catch (error: any) {
       // If profile doesn't exist yet, that's okay
       if (error.response?.status !== 404) {
-        console.error('Load health profile error:', error);
+        console.error('Load client profile error:', error);
       }
     }
   },
 
-  updateHealthProfile: async (data) => {
+  updateClientProfile: async (data) => {
     try {
       set({ isLoading: true });
-      const healthProfile = get().healthProfile
-        ? await api.updateHealthProfile(data)
-        : await api.createHealthProfile(data);
+      const clientProfile = get().clientProfile
+        ? await api.updateClientProfile(data)
+        : await api.createClientProfile(data);
 
-      set({ healthProfile, isLoading: false });
+      set({ clientProfile, isLoading: false });
     } catch (error: any) {
       set({
-        error: error.response?.data?.detail || 'Failed to update health profile',
+        error: error.response?.data?.detail || 'Failed to update client profile',
         isLoading: false,
       });
       throw error;

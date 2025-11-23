@@ -4,7 +4,7 @@ import {
   RegisterData,
   TokenResponse,
   User,
-  HealthProfile,
+  ClientProfile,
   ChatRequest,
   ChatResponse,
   Conversation
@@ -103,19 +103,19 @@ class ApiService {
     localStorage.removeItem('refresh_token');
   }
 
-  // Health Profile endpoints
-  async getHealthProfile(): Promise<HealthProfile> {
-    const response = await this.client.get('/api/v1/profile/health-profile');
+  // Client Profile endpoints
+  async getClientProfile(): Promise<ClientProfile> {
+    const response = await this.client.get('/api/v1/profile/client-profile');
     return response.data;
   }
 
-  async createHealthProfile(data: Partial<HealthProfile>): Promise<HealthProfile> {
-    const response = await this.client.post('/api/v1/profile/health-profile', data);
+  async createClientProfile(data: Partial<ClientProfile>): Promise<ClientProfile> {
+    const response = await this.client.post('/api/v1/profile/client-profile', data);
     return response.data;
   }
 
-  async updateHealthProfile(data: Partial<HealthProfile>): Promise<HealthProfile> {
-    const response = await this.client.put('/api/v1/profile/health-profile', data);
+  async updateClientProfile(data: Partial<ClientProfile>): Promise<ClientProfile> {
+    const response = await this.client.put('/api/v1/profile/client-profile', data);
     return response.data;
   }
 
@@ -134,9 +134,9 @@ class ApiService {
     await this.client.delete(`/api/v1/chat/history/${sessionId}`);
   }
 
-  // Emergency check
-  async checkEmergency(message: string): Promise<any> {
-    const response = await this.client.get('/api/v1/chat/emergency-check', {
+  // Urgency check
+  async checkUrgency(message: string): Promise<any> {
+    const response = await this.client.get('/api/v1/chat/urgency-check', {
       params: { message },
     });
     return response.data;
