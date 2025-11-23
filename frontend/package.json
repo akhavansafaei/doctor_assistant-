@@ -1,8 +1,8 @@
 {
-  "name": "ai-doctor-chatbot-frontend",
+  "name": "ai-law-assistant-frontend",
   "version": "1.0.0",
   "private": true,
-  "description": "AI Doctor Chatbot - ChatGPT-style Frontend",
+  "description": "AI Law Assistant - ChatGPT-style Frontend",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",

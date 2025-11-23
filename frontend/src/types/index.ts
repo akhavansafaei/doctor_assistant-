@@ -11,27 +11,23 @@ export interface User {
   last_login?: string;
 }
 
-export interface HealthProfile {
+export interface ClientProfile {
   id?: number;
   user_id?: number;
   age?: number;
   gender?: string;
-  height_cm?: number;
-  weight_kg?: number;
-  blood_type?: string;
-  chronic_conditions?: string[];
-  allergies?: {
-    drug?: string[];
-    food?: string[];
-    environmental?: string[];
-  };
-  current_medications?: Medication[];
-  past_surgeries?: Surgery[];
-  family_history?: Record<string, string[]>;
-  smoking_status?: string;
-  alcohol_consumption?: string;
-  exercise_frequency?: string;
-  diet_type?: string;
+  occupation?: string;
+  employer?: string;
+  citizenship?: string;
+  marital_status?: string;
+  legal_areas_of_interest?: string[];
+  active_legal_matters?: LegalMatter[];
+  previous_legal_issues?: LegalIssue[];
+  legal_restrictions?: LegalRestriction[];
+  business_entities?: BusinessEntity[];
+  financial_concerns?: string[];
+  preferred_communication?: string;
+  availability?: Record<string, string[]>;
   emergency_contact?: {
     name?: string;
     phone?: string;
@@ -41,17 +37,30 @@ export interface HealthProfile {
   updated_at?: string;
 }
 
-export interface Medication {
-  name: string;
-  dose?: string;
-  frequency?: string;
+export interface LegalMatter {
+  description: string;
+  type?: string;
+  status?: string;
   started_at?: string;
 }
 
-export interface Surgery {
-  name: string;
+export interface LegalIssue {
+  type: string;
   year?: string;
   date?: string;
+  notes?: string;
+}
+
+export interface LegalRestriction {
+  type: string;
+  details?: string;
+  expires_at?: string;
+}
+
+export interface BusinessEntity {
+  name: string;
+  type?: string;
+  ownership_percentage?: number;
   notes?: string;
 }
 
@@ -67,8 +76,8 @@ export interface Message {
 
 export interface MessageMetadata {
   agent_type?: string;
-  severity?: string;
-  emergency?: boolean;
+  urgency?: string;
+  urgent_matter?: boolean;
   sources?: Source[];
   confidence_score?: number;
 }
@@ -138,15 +147,15 @@ export interface ChatRequest {
   message: string;
   session_id?: string;
   enable_agents?: boolean;
-  patient_profile?: Partial<HealthProfile>;
+  client_profile?: Partial<ClientProfile>;
 }
 
 export interface ChatResponse {
   session_id: string;
   message: string;
   agent_type?: string;
-  severity_level?: string;
-  emergency_detected: boolean;
+  urgency_level?: string;
+  urgent_matter_detected: boolean;
   sources?: Source[];
   timestamp: string;
 }
