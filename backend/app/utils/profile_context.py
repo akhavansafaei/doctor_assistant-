@@ -1,163 +1,201 @@
-"""Utility to inject patient profile context into LLM prompts"""
+"""Utility to inject client profile context into LLM prompts"""
 from typing import Dict, Any, Optional
 
 
-def format_profile_for_prompt(health_profile: Optional[Dict[str, Any]]) -> str:
+def format_profile_for_prompt(client_profile: Optional[Dict[str, Any]]) -> str:
     """
-    Format health profile into a context string for LLM prompts
+    Format client profile into a context string for LLM prompts
 
     Args:
-        health_profile: Patient's health profile data
+        client_profile: Client's legal profile data
 
     Returns:
         Formatted context string
     """
-    if not health_profile:
+    if not client_profile:
         return ""
 
-    context_parts = ["PATIENT HEALTH PROFILE:"]
+    context_parts = ["CLIENT LEGAL PROFILE:"]
 
     # Basic information
     basic_info = []
-    if health_profile.get("age"):
-        basic_info.append(f"Age: {health_profile['age']} years")
+    if client_profile.get("occupation"):
+        basic_info.append(f"Occupation: {client_profile['occupation']}")
 
-    if health_profile.get("gender"):
-        basic_info.append(f"Gender: {health_profile['gender']}")
+    if client_profile.get("employer"):
+        basic_info.append(f"Employer: {client_profile['employer']}")
 
-    if health_profile.get("height_cm") and health_profile.get("weight_kg"):
-        height = health_profile["height_cm"]
-        weight = health_profile["weight_kg"]
-        # Calculate BMI
-        bmi = weight / ((height / 100) ** 2)
-        basic_info.append(f"Height: {height}cm, Weight: {weight}kg (BMI: {bmi:.1f})")
+    if client_profile.get("citizenship"):
+        basic_info.append(f"Citizenship: {client_profile['citizenship']}")
 
-    if health_profile.get("blood_type"):
-        basic_info.append(f"Blood Type: {health_profile['blood_type']}")
+    if client_profile.get("marital_status"):
+        basic_info.append(f"Marital Status: {client_profile['marital_status']}")
 
     if basic_info:
         context_parts.append("Basic Info: " + ", ".join(basic_info))
 
-    # Chronic conditions
-    chronic_conditions = health_profile.get("chronic_conditions", [])
-    if chronic_conditions:
-        context_parts.append(f"Chronic Conditions: {', '.join(chronic_conditions)}")
+    # Legal areas of interest
+    legal_areas = client_profile.get("legal_areas_of_interest", [])
+    if legal_areas:
+        context_parts.append(f"Legal Areas of Interest: {', '.join(legal_areas)}")
     else:
-        context_parts.append("Chronic Conditions: None reported")
+        context_parts.append("Legal Areas of Interest: Not specified")
 
-    # Allergies
-    allergies = health_profile.get("allergies", {})
-    if allergies:
-        allergy_list = []
-        for category, items in allergies.items():
-            if items:
-                allergy_list.append(f"{category.title()}: {', '.join(items)}")
-
-        if allergy_list:
-            context_parts.append("Allergies: " + "; ".join(allergy_list))
-        else:
-            context_parts.append("Allergies: None reported")
-    else:
-        context_parts.append("Allergies: None reported")
-
-    # Current medications
-    medications = health_profile.get("current_medications", [])
-    if medications:
-        med_list = []
-        for med in medications:
-            if isinstance(med, dict):
-                name = med.get("name", "Unknown")
-                dose = med.get("dose", "")
-                med_str = f"{name}"
-                if dose:
-                    med_str += f" ({dose})"
-                med_list.append(med_str)
+    # Active legal matters
+    active_matters = client_profile.get("active_legal_matters", [])
+    if active_matters:
+        matter_list = []
+        for matter in active_matters:
+            if isinstance(matter, dict):
+                description = matter.get("description", "Unknown matter")
+                status = matter.get("status", "")
+                matter_str = f"{description}"
+                if status:
+                    matter_str += f" ({status})"
+                matter_list.append(matter_str)
             else:
-                med_list.append(str(med))
+                matter_list.append(str(matter))
 
-        context_parts.append(f"Current Medications: {', '.join(med_list)}")
+        context_parts.append(f"Active Legal Matters: {', '.join(matter_list)}")
     else:
-        context_parts.append("Current Medications: None")
+        context_parts.append("Active Legal Matters: None reported")
 
-    # Past surgeries
-    surgeries = health_profile.get("past_surgeries", [])
-    if surgeries:
-        surgery_list = []
-        for surgery in surgeries:
-            if isinstance(surgery, dict):
-                name = surgery.get("name", "Unknown")
-                date = surgery.get("date", "")
-                surgery_str = f"{name}"
-                if date:
-                    surgery_str += f" ({date})"
-                surgery_list.append(surgery_str)
+    # Previous legal issues
+    previous_issues = client_profile.get("previous_legal_issues", [])
+    if previous_issues:
+        issue_list = []
+        for issue in previous_issues:
+            if isinstance(issue, dict):
+                issue_type = issue.get("type", "Unknown")
+                year = issue.get("year", "")
+                issue_str = f"{issue_type}"
+                if year:
+                    issue_str += f" ({year})"
+                issue_list.append(issue_str)
             else:
-                surgery_list.append(str(surgery))
+                issue_list.append(str(issue))
 
-        context_parts.append(f"Past Surgeries: {', '.join(surgery_list)}")
+        context_parts.append(f"Previous Legal Issues: {', '.join(issue_list)}")
 
-    # Lifestyle factors
-    lifestyle = []
-    if health_profile.get("smoking_status"):
-        lifestyle.append(f"Smoking: {health_profile['smoking_status']}")
+    # Legal restrictions
+    restrictions = client_profile.get("legal_restrictions", [])
+    if restrictions:
+        restriction_list = []
+        for restriction in restrictions:
+            if isinstance(restriction, dict):
+                restriction_type = restriction.get("type", "Unknown")
+                details = restriction.get("details", "")
+                restriction_str = f"{restriction_type}"
+                if details:
+                    restriction_str += f" - {details}"
+                restriction_list.append(restriction_str)
+            else:
+                restriction_list.append(str(restriction))
 
-    if health_profile.get("alcohol_consumption"):
-        lifestyle.append(f"Alcohol: {health_profile['alcohol_consumption']}")
+        context_parts.append(f"Legal Restrictions: {', '.join(restriction_list)}")
+    else:
+        context_parts.append("Legal Restrictions: None reported")
 
-    if health_profile.get("exercise_frequency"):
-        lifestyle.append(f"Exercise: {health_profile['exercise_frequency']}")
+    # Business entities
+    business_entities = client_profile.get("business_entities", [])
+    if business_entities:
+        entity_list = []
+        for entity in business_entities:
+            if isinstance(entity, dict):
+                name = entity.get("name", "Unknown entity")
+                entity_type = entity.get("type", "")
+                entity_str = f"{name}"
+                if entity_type:
+                    entity_str += f" ({entity_type})"
+                entity_list.append(entity_str)
+            else:
+                entity_list.append(str(entity))
 
-    if lifestyle:
-        context_parts.append("Lifestyle: " + ", ".join(lifestyle))
+        context_parts.append(f"Business Entities: {', '.join(entity_list)}")
+
+    # Financial concerns
+    financial_concerns = client_profile.get("financial_concerns", [])
+    if financial_concerns:
+        context_parts.append(f"Financial Concerns: {', '.join(financial_concerns)}")
+
+    # Communication preferences
+    pref_comm = client_profile.get("preferred_communication")
+    if pref_comm:
+        context_parts.append(f"Preferred Communication: {pref_comm}")
 
     # Add important note
     context_parts.append("")
-    context_parts.append("IMPORTANT: Consider this patient profile when providing medical advice. Account for their chronic conditions, medications, and allergies in your recommendations.")
+    context_parts.append("IMPORTANT: Consider this client profile when providing legal guidance. Account for their active legal matters, legal restrictions, and jurisdictional context in your recommendations.")
 
     return "\n".join(context_parts)
 
 
-def get_critical_warnings(health_profile: Optional[Dict[str, Any]]) -> list[str]:
+def get_critical_warnings(client_profile: Optional[Dict[str, Any]]) -> list[str]:
     """
     Extract critical warnings from profile that should be highlighted
 
     Args:
-        health_profile: Patient's health profile
+        client_profile: Client's legal profile
 
     Returns:
         List of warning messages
     """
     warnings = []
 
-    if not health_profile:
+    if not client_profile:
         return warnings
 
-    # Drug allergies are critical
-    allergies = health_profile.get("allergies", {})
-    drug_allergies = allergies.get("drug", [])
-    if drug_allergies:
+    # Legal restrictions are critical
+    restrictions = client_profile.get("legal_restrictions", [])
+    if restrictions:
+        restriction_types = []
+        for restriction in restrictions:
+            if isinstance(restriction, dict):
+                restriction_types.append(restriction.get("type", "Unknown"))
+            else:
+                restriction_types.append(str(restriction))
+
         warnings.append(
-            f"⚠️ DRUG ALLERGIES: Patient is allergic to {', '.join(drug_allergies)}. "
-            "Avoid recommending these medications or related compounds."
+            f"⚠️ LEGAL RESTRICTIONS: Client has {', '.join(restriction_types)}. "
+            "Ensure any legal strategy complies with these restrictions."
         )
 
-    # High-risk chronic conditions
-    high_risk_conditions = ["diabetes", "heart disease", "kidney disease", "liver disease"]
-    chronic_conditions = health_profile.get("chronic_conditions", [])
-    critical_conditions = [c for c in chronic_conditions if any(risk in c.lower() for risk in high_risk_conditions)]
+    # High-risk legal situations
+    high_risk_areas = ["criminal", "bankruptcy", "deportation", "custody"]
+    active_matters = client_profile.get("active_legal_matters", [])
+    critical_matters = []
 
-    if critical_conditions:
+    for matter in active_matters:
+        if isinstance(matter, dict):
+            description = matter.get("description", "").lower()
+            matter_type = matter.get("type", "").lower()
+
+            if any(risk in description or risk in matter_type for risk in high_risk_areas):
+                critical_matters.append(matter.get("description", "Critical matter"))
+
+    if critical_matters:
         warnings.append(
-            f"⚠️ HIGH-RISK CONDITIONS: Patient has {', '.join(critical_conditions)}. "
-            "Exercise extra caution with medication recommendations."
+            f"⚠️ HIGH-STAKES MATTERS: Client has critical legal matters ({', '.join(critical_matters)}). "
+            "Exercise extra caution and recommend immediate attorney consultation."
         )
 
-    # Check for medication interactions
-    medications = health_profile.get("current_medications", [])
-    if len(medications) >= 5:
+    # Check for multiple active matters (potential conflicts)
+    if len(active_matters) >= 3:
         warnings.append(
-            "⚠️ POLYPHARMACY: Patient is on multiple medications. "
-            "Carefully check for drug interactions."
+            f"⚠️ MULTIPLE ACTIVE MATTERS: Client has {len(active_matters)} ongoing legal matters. "
+            "Carefully check for potential conflicts or interactions between cases."
+        )
+
+    # Financial distress warnings
+    financial_concerns = client_profile.get("financial_concerns", [])
+    critical_financial = ["bankruptcy", "foreclosure", "debt collection", "tax liens"]
+
+    critical_finances = [c for c in financial_concerns if any(crit.lower() in c.lower() for crit in critical_financial)]
+
+    if critical_finances:
+        warnings.append(
+            f"⚠️ FINANCIAL DISTRESS: Client has {', '.join(critical_finances)}. "
+            "Consider financial implications of legal strategies."
         )
 
     return warnings
